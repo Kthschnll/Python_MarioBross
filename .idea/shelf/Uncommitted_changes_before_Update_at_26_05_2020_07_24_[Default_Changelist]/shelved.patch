@@ -1,0 +1,224 @@
+Index: menu.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import os\r\n\r\nos.environ[\"PYGAME_HIDE_SUPPORT_PROMPT\"] = \"hide\"\r\n\r\nimport pygame\r\n\r\npygame.init()\r\n\r\n# display constants\r\ndisplay_width = 1000\r\ndisplay_height = 600\r\n\r\n# menu grafics\r\nresources_path = \"res/\"\r\nmenu_background = pygame.transform.scale(pygame.image.load(resources_path + \"Background.png\"), (1000, 600))\r\nmenu_navbar = pygame.transform.scale(pygame.image.load(resources_path + \"Navbar_back.png\"), (1000, 40))\r\n# load buttons\r\nbutton_names = [\"_sdt\", \"_hower\", \"_clicked\"]\r\nbutton_image_list = []\r\n\r\nfor i in range(3):\r\n    button_image_list.append(\r\n        pygame.transform.scale(pygame.image.load(resources_path + \"button\" + button_names[i] + \".png\"), (90, 30)))\r\n\r\n# colors\r\nwhite = (255, 255, 255)\r\nblack = (0, 0, 0)\r\nred = (255, 0, 0)\r\ngreen = (0, 255, 0)\r\nblue = (0, 0, 255)\r\ngray = (109, 107, 118)\r\n\r\n\r\n# Buttons\r\nclass Button:\r\n    def __init__(self,  button_text, button_rect, is_clicked=False, button_color=button_image_list[0]):\r\n        self.button_color = button_color\r\n        self.button_text = button_text\r\n        self.button_rect = button_rect\r\n        self.is_clicked = is_clicked\r\n\r\n    def draw_self(self):\r\n        if self.is_clicked:\r\n            self.button_color = button_image_list[2]\r\n        gameDisplay.blit(self.button_color, (self.button_rect.x, self.button_rect.y))\r\n        static_display(self.button_text, 20, white, (self.button_rect.x + 43, self.button_rect.y + 18))\r\n\r\n\r\nhome_button = Button(\"Home\", pygame.Rect(4, 5, 90, 30))\r\nlevel_button = Button(\"Level\", pygame.Rect(98, 5, 90, 30))\r\n\r\nmenu_button_list = [home_button,level_button]\r\n\r\n# printen\r\ndef text_object(text=\"\", font=\"\", color=\"red\"):\r\n    textSurface = font.render(text, True, color)\r\n    return textSurface, textSurface.get_rect()\r\n\r\n\r\ndef message_display(text=\"\", size=50, color=\"red\"):\r\n    largeText = pygame.font.Font(\"freesansbold.ttf\", size)\r\n    TextSurf, TextRect = text_object(text, largeText, color)\r\n    TextRect.center = ((display_width / 2), (display_height / 2))\r\n    gameDisplay.blit(TextSurf, TextRect)\r\n    pygame.display.update()\r\n\r\n\r\ndef static_display(text=\"\", size=10, color=\"black\", position=((display_width / 2), (display_height / 2))):\r\n    largeText = pygame.font.Font(\"freesansbold.ttf\", size)\r\n    TextSurf, TextRect = text_object(text, largeText, color)\r\n    TextRect.center = position\r\n    gameDisplay.blit(TextSurf, TextRect)\r\n    pygame.display.update()\r\n\r\n\r\n# init display\r\ngameDisplay = pygame.display.set_mode((display_width, display_height))\r\ngameDisplay.fill(gray)\r\npygame.display.set_caption(\"MarioPy\")\r\n\r\nclock = pygame.time.Clock()\r\n\r\n\r\ndef menu_loop():\r\n    # set menu background\r\n    gameDisplay.blit(menu_background, (0, 0))\r\n    gameDisplay.blit(menu_navbar, (0, 0))\r\n\r\n    wait = True\r\n    while wait:\r\n       #draw buttons\r\n        home_button.draw_self()\r\n        level_button.draw_self()\r\n\r\n\r\n        # check buttons\r\n        for i in range(len(menu_button_list)):\r\n            if menu_button_list[i].button_rect.collidepoint(pygame.mouse.get_pos()):\r\n                menu_button_list[i].button_color = button_image_list[1]\r\n            else:\r\n                menu_button_list[i].button_color = button_image_list[0]\r\n\r\n        pygame.display.update()\r\n        clock.tick(30)\r\n        for event in pygame.event.get():\r\n            if event.type == pygame.KEYDOWN:\r\n                if event.key == pygame.K_SPACE:\r\n                    wait = False\r\n            elif event.type == pygame.MOUSEBUTTONDOWN:\r\n                # 1 is the left mouse button, 2 is middle, 3 is right.\r\n                if event.button == 1:\r\n                    # check buttons\r\n                    for i in range(len(menu_button_list)):\r\n                        if menu_button_list[i].button_rect.collidepoint(event.pos):\r\n                            menu_button_list[i].is_clicked = True\r\n            elif event.type == pygame.MOUSEBUTTONUP:\r\n                # 1 is the left mouse button, 2 is middle, 3 is right.\r\n                if event.button == 1:\r\n                    # check buttons\r\n                    for i in range(len(menu_button_list)):\r\n                        if menu_button_list[i].is_clicked:\r\n                            menu_button_list[i].is_clicked = False\r\n\r\nmenu_loop()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- menu.py	(revision 84245ab3564c78030bce57ff1760b515b0ebf742)
++++ menu.py	(date 1590431033423)
+@@ -1,7 +1,3 @@
+-import os
+-
+-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+-
+ import pygame
+ 
+ pygame.init()
+@@ -11,9 +7,10 @@
+ display_height = 600
+ 
+ # menu grafics
+-resources_path = "res/"
+-menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
+-menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
++resources_path = "res/menu/"
++menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (display_width, display_height))
++menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (display_width, 40))
++
+ # load buttons
+ button_names = ["_sdt", "_hower", "_clicked"]
+ button_image_list = []
+@@ -76,7 +73,7 @@
+ # init display
+ gameDisplay = pygame.display.set_mode((display_width, display_height))
+ gameDisplay.fill(gray)
+-pygame.display.set_caption("MarioPy")
++
+ 
+ clock = pygame.time.Clock()
+ 
+@@ -103,9 +100,17 @@
+         pygame.display.update()
+         clock.tick(30)
+         for event in pygame.event.get():
++            if event.type == pygame.QUIT:
++                wait = False
++                pygame.quit()
++                quit()
++
+             if event.type == pygame.KEYDOWN:
+                 if event.key == pygame.K_SPACE:
+                     wait = False
++                elif event.key == pygame.K_w or event.key == 172:
++                    game.loadlevel()
++
+             elif event.type == pygame.MOUSEBUTTONDOWN:
+                 # 1 is the left mouse button, 2 is middle, 3 is right.
+                 if event.button == 1:
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Python_MarioBross
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- README.md	(revision 84245ab3564c78030bce57ff1760b515b0ebf742)
++++ README.md	(date 1590431289972)
+@@ -1,1 +1,1 @@
+-# Python_MarioBross
+\ No newline at end of file
++# Python_MarioBros
+\ No newline at end of file
+Index: game.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- game.py	(revision 84245ab3564c78030bce57ff1760b515b0ebf742)
++++ game.py	(date 1590440354820)
+@@ -1,0 +1,108 @@
++import pygame
++from os import listdir
++from os.path import isfile, join
++
++import main
++
++# sprite preparation
++left_walk = []
++right_walk = []
++up_walk = []
++down_walk = []
++
++# movement flags
++mv_left = False
++mv_right = False
++mv_up = False
++mv_down = False
++
++only_files = [ files for files in listdir("res") if isfile(join("res", files)) ]
++
++for myfile in only_files:
++    if "right" in myfile:
++        right_walk.append(pygame.image.load("res/" + myfile))
++    if "left" in myfile:
++        left_walk.append(pygame.image.load("res/" + myfile))
++    if "up" in myfile:
++        up_walk.append(pygame.image.load("res/" + myfile))
++    if "down" in myfile:
++        down_walk.append(pygame.image.load("res/" + myfile))
++
++
++class character():
++    def __init__(self, x, y):
++        self.x = x
++        self.y = y
++        self.speed = 15
++        self.height = 32  # character picture height
++        self.width = 16  # character picture width
++        self.animation_count = 0
++        self.health = 1
++
++    def draw(self, win):
++        """
++           draws the enemy with the given images
++           praram win: surfface
++           return none
++        """
++        self.animation_count +=1
++        self.img = self.imgs[self.animation_count]
++        if self.animation_count >=len(self.imgs):
++            self.animation_count = 0
++        win.blit(self.img, (self.x, self.y))
++        self.move()
++
++
++    def collide(self, X, Y):
++        """
++            returns if position has hit enemy
++            - param x: int
++            - para, y: int
++            - return: boolean
++        """
++        if X <= self.x + self.width and X >= self.x:
++            if Y <= self.y +self.height and Y >= self.y:
++                return True
++        return False
++
++
++
++    def hit(self):
++    """
++    returns if character die
++    """
++    self.health -= 1
++        if self.health <= 0:
++            return True
++
++
++
++
++class player(character): // Aufruf mit: player(main.display_width / 2, main.display_height / 3)
++    def __init__(self, x, y):
++        super().__init__( x, y)
++    def move(self):
++        pass
++
++class enemy(character):
++    def __init__(self, x, y):
++        super().__init__( x, y)
++
++    def move(self):
++        pass
++
++
++class Game:
++    def __init__(self):
++        self.width = 1000
++        self.height = 600
++        self.win = pygame.display.set_mode((self.width, self.height))
++
++    def run(self):
++        run = True
++
++        while run:
++            for event in pygame.event.get():
++                if event.type == pygame.Quit:
++                    run = False
++                    pygame.QUIT()
+Index: .idea/Python_MarioBross.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"PYTHON_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\">\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <excludeFolder url=\"file://$MODULE_DIR$/venv\" />\r\n    </content>\r\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.7 (Python_MarioBross)\" jdkType=\"Python SDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/Python_MarioBross.iml	(revision 84245ab3564c78030bce57ff1760b515b0ebf742)
++++ .idea/Python_MarioBross.iml	(date 1590398714994)
+@@ -4,7 +4,7 @@
+     <content url="file://$MODULE_DIR$">
+       <excludeFolder url="file://$MODULE_DIR$/venv" />
+     </content>
+-    <orderEntry type="jdk" jdkName="Python 3.7 (Python_MarioBross)" jdkType="Python SDK" />
++    <orderEntry type="jdk" jdkName="Python 3.7 (3)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+ </module>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"JavaScriptSettings\">\r\n    <option name=\"languageLevel\" value=\"ES6\" />\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" project-jdk-name=\"Python 3.7 (Python_MarioBross)\" project-jdk-type=\"Python SDK\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision 84245ab3564c78030bce57ff1760b515b0ebf742)
++++ .idea/misc.xml	(date 1590398715031)
+@@ -3,5 +3,5 @@
+   <component name="JavaScriptSettings">
+     <option name="languageLevel" value="ES6" />
+   </component>
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (Python_MarioBross)" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (3)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
