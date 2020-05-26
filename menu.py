@@ -12,7 +12,7 @@ display_width = 1000
 display_height = 600
 
 # menu grafics
-resources_path = "res/"
+resources_path = "res/menu/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -113,7 +113,7 @@ def static_display(text="", size=10, color="black", position=((display_width / 2
 
 # init display
 gameDisplay = pygame.display.set_mode((display_width, display_height))
-gameDisplay.fill(gray)
+gameDisplay.fill(white)
 pygame.display.set_caption("MarioPy")
 
 clock = pygame.time.Clock()
