@@ -3,8 +3,16 @@ import time
 import os
 from os import listdir
 from os.path import isfile, join
-from PIL import Image  # for mirror image
+from PIL import Image  # for mirror image todo: am Ende löschen
+from enum import Enum  # für enums  todo: enum für left_walk,right_walk,jump_walk,idle_walk um entprechenden, siehe player.draw
 
+
+"""
+
+wichtig todo: zwieten damit animationen passen -> mehrere events kommen auch ohne die eine funktion
+
+
+"""
 # OS-Umgebung ---WIN10.10.02
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -33,10 +41,10 @@ GRAY = (109, 107, 118)
 gameDisplay = pg.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
 
 # level preparation
-LEVEL_LENGTH = 2
-ARRAY_Y = (DISPLAYWIDTH // BLOCKWIDTH)  # * LEVEL_LENGTH
-ARRAY_X = DISPLAYHEIGHT // BLOCKHEIGHT  #
-NORMAL_GROUND = BLOCKHEIGHT * ((2 * ARRAY_X) // 3)  # normalground ist die kleinste Höhe auf der sich spieler befindet
+level_length = 5
+temp_y = DISPLAYHEIGHT // BLOCKHEIGHT  # 12
+temp_x = (DISPLAYWIDTH // BLOCKWIDTH) * level_length  # 20
+NORMAL_GROUND = (DISPLAYHEIGHT // 3) * 2  # normalground ist die kleinste Höhe auf der sich spieler befindet
 
 """
     Erstellen des Levels, auslagern 
@@ -46,15 +54,15 @@ NORMAL_GROUND = BLOCKHEIGHT * ((2 * ARRAY_X) // 3)  # normalground ist die klein
 
 # level grafics
 resources_path_level = "res/level/"
-# todo: hier aus großem Bild entsprechende Sachen ausschneiden
-# siehe Youtube Video
 ground = pg.transform.scale(pg.image.load(resources_path_level + "ground.png"), (BLOCKWIDTH, BLOCKHEIGHT))  # 1 in array
+# todo weiter blöcke hinzufügen, eventuell methode um aus großem bild in python auszuschenden, sinnvoll??
 
 # player preparation
 left_walk = []
 right_walk = []
 jump_walk = []  # sprung
-idle_walk = []  # landen
+idle_walk = []  # idle
+
 PLAYERHEIGHT = 75
 PLAYERWIDTH = 50
 
@@ -84,18 +92,15 @@ for myfile in only_files:
 
 def game_main(level_num):
     level = Level(level_num)  # Erstellen des Levels und Ausgabe von Start Level mit x = 0
-    player = Player(0, NORMAL_GROUND - PLAYERHEIGHT)
+    player = Player(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, 20, PLAYERHEIGHT, PLAYERWIDTH, 2)
+
     run(level, player)  # solange hier drin bis Level zu Ende
 
 
 def run(level, player):
     running = True
-
-    mv_left = False
-    mv_right = False
-    mv_up = False
-    mv_idle = True
-
+    pg.key.set_repeat(50, 50)  # erster par. wann das erste mal wiederholt wird, zweiter par. ab dem 2ten mal  intervall
+    # todo: anders möglich? ohne die anweisung darüber
     while running:
         for event in pg.event.get():
             """
@@ -105,62 +110,74 @@ def run(level, player):
             """
             # keyboard interactions
             if event.type == pg.KEYDOWN:
+                # player.animation_count = 0  # damit Bewegung immer mit erstem Bild anfängt
                 # left
                 if event.key == pg.K_LEFT or event.key == pg.K_a:
-                    mv_left = True
+                    player.move(0, level)
                 # right
                 if event.key == pg.K_RIGHT or event.key == pg.K_d:
-                    mv_right = True
-                # up
+                    player.move(1, level)
+                # jump
+                # todo: Bild 01, 02 müssen solange wiederholt werden bis player boden ereicht (davor collision machen erkennung)
                 if event.key == pg.K_UP or event.key == pg.K_w:
-                    mv_up = True
-                # down
-                if event.key == pg.K_DOWN or event.key == pg.K_s:
-                    mv_down = True
+                    player.move(2, level)
 
-            if event.type == pg.KEYUP:
-                if event.key == pg.K_LEFT or event.key == pg.K_a:
-                    mv_left = False
-                if event.key == pg.K_RIGHT or event.key == pg.K_d:
-                    mv_right = False
-                if event.key == pg.K_UP or event.key == pg.K_w:
-                    mv_up = False
-                mv_idle = True
-
-        # movement
-        if mv_left:
-            player.move(0)
-        if mv_right:
-            player.move(1)
-        if mv_up:
-            player.move(2)
-        if mv_idle:
-            player.move(3)
+        player.move(3, level)  # Dauerschleife für idle falls kein event in python
+        # todo: schlecht da es die ganze Zeit rein geht zwischen anderen movements
 
 
 class Level:
     def __init__(self, num):
         self.x = 0  # x = Feld das ganz Links im Window angezeigt wird
-        gameDisplay.fill(GREEN)
-        self.load_level(num)
+        """
+        if num == 0:
+            # todo: entprechendes array laden (aus anderer Datei laden)
+            #   self.level_array = ...
+        """
+        # todo: in anderer Datei Level erstellen mit Blöcken an den richtigen stellen, level muss am ende eine halbe displaygröße gößer sein wie letzte pos die spieler erreichen kann
+        # generate Level to see something
+        # array hat y Listen, jede Liste hat x werte
+        # level_array mit Nullen befüllen
+        self.level_array = [[0 for i in range(temp_y)] for j in range(temp_x)]
+        # einzelne Werte in Array eingeben
+        #   [Liste][Element] ; NORMAL_GROUND // BLOCKHEIGHT = 8
+        for i in range(0, 10):
+            self.level_array[i][NORMAL_GROUND // BLOCKHEIGHT] = 1  # 1 = normal ground
+        self.level_array[19][NORMAL_GROUND // BLOCKHEIGHT] = 1
+        self.draw_level(0)
 
-    def load_level(self, num):
-        # todo: hier allegemeine Funktion um Abhängig von self.x Level zu zeichnen mit Hilfe von: level1_array
-        # siehe Youtube Video
-        for i in range(ARRAY_Y + 1):
-            gameDisplay.blit(ground, (i * BLOCKWIDTH, NORMAL_GROUND))
-        pg.display.update()
+    def draw_level(self, player_pos):
+        # todo: nicht nur ganze arrays überspringen sondern self.player.speed
+        # todo: ende von array muss sich auf spieler zu bewegen
+        # allgemeine Funktion um Abhängig von player_pos Level zu zeichnen
+        # Grenzen von array x, y berechnen das nötig ist für die ausgabe
+        player_array_pos = player_pos // BLOCKWIDTH  # position von player im Array
+        space = (DISPLAYWIDTH // 2) // BLOCKWIDTH  # Felder die nach links/rechts auf display kommen
+        print(player_array_pos, space)
+        if player_array_pos > space:
+            left_border = player_array_pos - space
+            right_border = player_array_pos + space
+        else:  # Spieler läuft die ersten paar Meter -> nach links geht Level nicht weiter
+            left_border = 0
+            right_border = temp_x
+
+        # for-loop begrenzen
+        for x in range(left_border, right_border):
+            for y in range(0, temp_y):
+                value = self.level_array[x][y]
+                if value == 1:  # ground
+                    gameDisplay.blit(ground, (x * BLOCKWIDTH, y * BLOCKHEIGHT))
 
 
 class Character:
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed, height, width, health):
         self.x = x
         self.y = y
-        self.speed = 50
-        self.height = 32  # character picture height
-        self.width = 16  # character picture width
+        self.speed = speed
+        self.height = height  # character picture height
+        self.width = width  # character picture width
         self.animation_count = 0
-        self.health = 1
+        self.health = health
 
     def hit(self):
         """
@@ -172,39 +189,64 @@ class Character:
 
 
 class Player(Character):
-    def __init__(self, x, y):
-        super().__init__(x, y)
-        self.draw(3)
+    def __init__(self, x, y, speed, height, width, health):
+        super().__init__(x, y, speed, height, width, health)
 
-    def draw(self, direction):
+
+    def draw(self, direction, level):
+        gameDisplay.fill(GREEN)  # um alles vorherige zu löschen
+        max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2
+
+        if self.x < max_x:
+            max_x = self.x
+
         self.animation_count += 1
+        # todo: bei bewegungswechsel muss neue bewegung mit count = 0 anfangen, extra animation count für jede bewegungsart??
+        # left
         if direction == 0:
-            if self.animation_count + 1 >= len(left_walk):
+            if self.animation_count + 1 >= len(left_walk):  # todo diese if abfrage mit enum für alle Arrays machen
                 self.animation_count = 0
-            gameDisplay.blit(left_walk[self.animation_count], (self.x, self.y))
-        elif direction == 1:
+            gameDisplay.blit(left_walk[self.animation_count], (max_x, self.y))
+        # right
+        if direction == 1:
             if self.animation_count + 1 >= len(right_walk):
                 self.animation_count = 0
-                if self.x < (DISPLAYWIDTH / 2 - PLAYERWIDTH / 2):
-                    self.x += self.speed
-            gameDisplay.blit(right_walk[self.animation_count], (self.x, self.y))
-        elif direction == 2:
+            gameDisplay.blit(right_walk[self.animation_count], (max_x, self.y))
+        # jump
+        if direction == 2:
             if self.animation_count + 1 >= len(jump_walk):
                 self.animation_count = 0
-            gameDisplay.blit(jump_walk[self.animation_count], (self.x, self.y))
-        elif direction == 3:
+            gameDisplay.blit(jump_walk[self.animation_count], (max_x, self.y))
+        # idle
+        if direction == 3:
             if self.animation_count + 1 >= len(idle_walk):
                 self.animation_count = 0
-            gameDisplay.blit(idle_walk[self.animation_count], (self.x, self.y))
-        pg.display.update()
+            gameDisplay.blit(idle_walk[self.animation_count], (max_x, self.y))
+
+        level.draw_level(self.x)  # um Level blöcke neu zu zeichen
+        pg.display.update()  # komplettes window updaten
         clock.tick(50)
 
-    def move(self, direction):
+    def move(self, direction, level):
         """
             - does effect Level x Wert, charackter y Wert if jump or down, draw function of level and character
         """
-        self.draw(direction)
-        pass
+        # left
+        if direction == 0:
+            self.x -= self.speed
+            if self.x < 0:
+                self.x = 0
+        # right
+        if direction == 1:
+            self.x += self.speed
+        # jump
+        if direction == 2:
+            self.y -= self.speed
+            clock.tick(500)
+            self.draw(direction, level)
+            self.y += self.speed
+            # todo: ist :  self.level_array[][]
+        self.draw(direction, level)
 
     def collide(self, level):
         """
