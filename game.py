@@ -1,9 +1,12 @@
 import pygame as pg
 import time
+import os
 from os import listdir
 from os.path import isfile, join
 
 # OS-Umgebung ---WIN10.10.02
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
 pg.init()
 clock = pg.time.Clock()
@@ -36,56 +39,103 @@ down_walk = []  # landen
 
 # level preparation
 LEVEL_LENGTH = 2
-ARRAY_LENGHT = (DISPLAYWIDTH // BLOCKWIDTH) * LEVEL_LENGTH
-ARRAY_HIGHT = DISPLAYHEIGHT // BLOCKHEIGHT
+ARRAY_Y = (DISPLAYWIDTH // BLOCKWIDTH)  # * LEVEL_LENGTH  = 24
+ARRAY_X = DISPLAYHEIGHT // BLOCKHEIGHT  #
+NORMAL_GROUND = BLOCKHEIGHT * (2 / 3 * ARRAY_X)
 
-
-i = ((DISPLAYHEIGHT // BLOCKHEIGHT) // 3) - 1
-print(type(i))
-level1_array = [ARRAY_LENGHT][ARRAY_HIGHT] # because of fail not: level1_array = [ARRAY_LENGHT][ARRAY_HIGHT]
-
-# Erstellen des Levels, auslagern
-for y in range(((DISPLAYHEIGHT / BLOCKHEIGHT) / 3) - 1):
-    for x in range((DISPLAYWIDTH / BLOCKWIDTH) * LEVEL_LENGTH):
-        level1_array = [y][x] = 1
+"""
+    Erstellen des Levels, auslagern 
+    Hilfe: from array import *
+    level1_array = [[0,0,0,0,0,0,0],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1]]
+"""
 
 # level grafics
 resources_path = "res/level/"
+# todo: hier aus großem Bild entsprechende Sachen ausschneiden
+# siehe Youtube Video
 ground = pg.transform.scale(pg.image.load(resources_path + "ground.png"), (BLOCKWIDTH, BLOCKHEIGHT))  # 1 in array
 
+# load player assets
 only_files = [files for files in listdir("res/player/") if isfile(join("res/player/", files))]
 
 for myfile in only_files:
     if "right" in myfile:
         right_walk.append(pg.image.load("res/player/" + myfile))
-        print(left_walk[0])
     if "left" in myfile:
         left_walk.append(pg.image.load("res/player/" + myfile))
+    # jump, down mising
 
 
 def game_main(level_num):
-    level = Level(level_num)
-    level.load_level(level_num)
+    level = Level(level_num)  # Erstellen des Levels und Ausgabe von Start Level mit x = 0
+    player = Player(DISPLAYWIDTH // 2,
+                    NORMAL_GROUND - 31)  # todo: x pos. von Player soll am Anfang 0 sein und erst nach ein paar Metern in der Mitte
+    run(level, player)  # solange hier drin bis Level zu Ende
+
+
+def run(level, player):
+    running = True
+
+    mv_left = False
+    mv_right = False
+    mv_up = False
+    mv_down = False
+
+    while running:
+        for event in pg.event.get():
+            """
+            if event.type == pg.Quit:
+                running = False
+                pg.QUIT()
+            """
+            # keyboard interactions
+            if event.type == pg.KEYDOWN:
+                # left
+                if event.key == pg.K_LEFT or event.key == pg.K_a:
+                    mv_left = True
+                # right
+                if event.key == pg.K_RIGHT or event.key == pg.K_d:
+                    mv_right = True
+                # up
+                if event.key == pg.K_UP or event.key == pg.K_w:
+                    mv_up = True
+                # down
+                if event.key == pg.K_DOWN or event.key == pg.K_s:
+                    mv_down = True
+
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_LEFT or event.key == pg.K_a:
+                    mv_left = False
+                if event.key == pg.K_RIGHT or event.key == pg.K_d:
+                    mv_right = False
+                if event.key == pg.K_UP or event.key == pg.K_w:
+                    mv_up = False
+                if event.key == pg.K_DOWN or event.key == pg.K_s:
+                    mv_down = False
+
+        # movement
+        if mv_left:
+            player.move(0)
+        if mv_right:
+            player.move(1)
+        if mv_up:
+            player.move(2)
+        if mv_down:
+            player.move(3)
 
 
 class Level:
     def __init__(self, num):
-        self.x = 0  # Feld das links unten im Display angezeigt wird
-        self.y = 0
+        self.x = 0  # x = Feld das ganz Links im Window angezeigt wird
+        gameDisplay.fill(GREEN)
         self.load_level(num)
-        run()
 
     def load_level(self, num):
-        gameDisplay.fill(GREEN)
-
-        for i in range(DISPLAYWIDTH / BLOCKWIDTH):
-            gameDisplay.blit(ground, (DISPLAYWIDTH / 2, DISPLAYHEIGHT / 3))
+        # todo: hier allegemeine Funktion um Abhängig von self.x Level zu zeichnen mit Hilfe von: level1_array
+        # siehe Youtube Video
+        for i in range(ARRAY_Y + 1):
+            gameDisplay.blit(ground, (i * BLOCKWIDTH, NORMAL_GROUND))
         pg.display.update()
-        # clock.tick(50)
-
-        Player(main.display_width / 2,
-               main.display_height / 3)  # am Anfang soll Player nicht die position haben, sondern links anfangen
-        print(left_walk)
 
 
 class Character:
@@ -97,7 +147,6 @@ class Character:
         self.width = 16  # character picture width
         self.animation_count = 0
         self.health = 1
-
 
     def hit(self):
         """
@@ -111,100 +160,57 @@ class Character:
 class Player(Character):  # Aufruf mit: player(main.display_width / 2, main.display_height / 3)
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.draw(1)
 
-    def move(self, direction):
+    def draw(self, direction):
         self.animation_count += 1
-        if self.animation_count + 1 >= 4:  # da wir 5 Bilder pro Movement haben
+        if self.animation_count + 1 >= 4:  # da nur 5 Bilder pro Movement haben
             self.animation_count = 0
 
         if direction == 0:
             gameDisplay.blit(left_walk[self.animation_count], (self.x, self.y))
         elif direction == 1:
             gameDisplay.blit(right_walk[self.animation_count], (self.x, self.y))
-        """
         elif direction == 2:
             gameDisplay.blit(up_walk[self.animation_count], (self.x, self.y))
         elif direction == 3:
             gameDisplay.blit(down_walk[self.animation_count], (self.x, self.y))
-        """
         pg.display.update()
+        clock.tick(50)
 
-    def collide(self, X, Y):
+    def move(self, direction):
         """
-            returns if position has hit enemy
-            - param x: int
-            - para, y: int
-            - return: boolean
+            - does effect Level x Wert, charackter y Wert if jump or down, draw function of level and character
         """
-        if X <= self.x + self.width and X >= self.x:
-            if Y <= self.y + self.height and Y >= self.y:
-                return True
-        return False
+        self.draw(direction)
+        pass
+
+    def collide(self, level):
+        """
+            - with enemy or level
+        """
 
 
-
-class Enemy(Character):
+"""class Enemy(Character):
     def __init__(self, x, y):
         super().__init__(x, y)
 
     def move(self):
         pass
 
-    def draw(self, gameDisplay):
-        """
-           draws the enemy with the given images
-           praram window: surfface
-           return none
-        """
+    def draw(self):
+        
+           #draws the enemy with the given images
+           #praram window: surfface
+           #return none
+        
         self.animation_count += 1
         self.img = self.imgs[self.animation_count]
         if self.animation_count >= len(self.imgs):
             self.animation_count = 0
         gameDisplay.blit(self.img, (self.x, self.y))
         self.move()
-
-
-def run():
-    run = True
-
-    while run:
-        for event in pg.event.get():
-            """
-            if event.type == pg.Quit:
-                run = False
-                pg.QUIT()
-            """
-        # keyboard interactions
-        if event.type == pg.KEYDOWN:
-            # left
-            if event.key == pg.K_LEFT or event.key == pg.K_a:
-                player.move(0)
-
-            # right
-            if event.key == pg.K_RIGHT or event.key == pg.K_d:
-                player.move(1)
-
-            # up
-            if event.key == pg.K_UP or event.key == pg.K_w:
-                player.move(2)
-
-            # down
-            if event.key == pg.K_DOWN or event.key == pg.K_s:
-                player.move(3)
-
-        if event.type == pg.KEYUP:
-            if event.key == pg.K_LEFT or event.key == pg.K_a:
-                mv_left = False
-            if event.key == pg.K_RIGHT or event.key == pg.K_d:
-                mv_right = False
-            if event.key == pg.K_UP or event.key == pg.K_w:
-                mv_up = False
-            if event.key == pg.K_DOWN or event.key == pg.K_s:
-                mv_down = False
-
-
-
-
+"""
 
 # aufruf aus menu
 
