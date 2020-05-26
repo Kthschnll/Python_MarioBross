@@ -43,7 +43,14 @@ for i in range(len(button_names)):
     play_button_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
-
+#load charrackter sprites
+run_right_img_list = []
+stay_img_list = []
+for i in range(8):
+    run_right_img_list.append(pygame.transform.scale(pygame.image.load(resources_path + "frame_" + str(i) + "_delay-0.1s.gif"), (50, 75)))
+for i in range(10):
+    stay_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path + "frame1_0" + str(i) + "_delay-0.1s.gif"), (50, 75)))
 # colors
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -106,6 +113,25 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
+#Class Player
+class Player:
+    def __init__(self,player_rect,current_move,move_list,img_list,state):
+        self.player_rect = player_rect
+        self.current_move = current_move
+        self.move_list = move_list
+        self.img_list = img_list
+        self.state = state
+
+    def draw_self(self):
+        if self.state%2 == 0:
+            gameDisplay.blit(self.img_list[self.current_move][int(self.state/2)],(self.player_rect.x,self.player_rect.y))
+        if self.state < (len(self.img_list[self.current_move])-1)*2:
+            self.state += 1
+        else: self.state = 0
+
+
+#create a Player
+player1 = Player(pygame.Rect(200,200,50,75),0,[0,1],[stay_img_list,run_right_img_list],0)
 
 # printen
 def text_object(text="", font="", color="red"):
@@ -222,7 +248,7 @@ def check_trans_button(button, image_list):
             button.is_painted = color
 
 
-def check_events(game_state):
+def check_events(game_state,player=player1):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -260,8 +286,26 @@ def check_events(game_state):
                 if play_button.is_clicked:
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                player.current_move = 1
+                player1.state = 0
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                player.current_move = 0
+                player1.state = 0
     return game_state
 
+def check_player_events(player):
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                player.current_move = 1
+                player1.state = 0
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                player.current_move = 0
+                player1.state = 0
 
 def options_menu_loop(game_state, former_game_state):
     draw_options_background()
@@ -276,11 +320,13 @@ def options_menu_loop(game_state, former_game_state):
 
 
 def menu_home_loop(game_state):
-    draw_menu_background("Home_slide")
+    draw_menu_background("Home")
 
     while game_state == 0:
+        draw_menu_background("Home")
+        player1.draw_self()
         check_buttons()
-        game_state = check_events(game_state)
+        game_state = check_events(game_state,player1)
         pygame.display.update()
         clock.tick(30)
     return game_state
