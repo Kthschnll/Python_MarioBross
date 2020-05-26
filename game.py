@@ -3,6 +3,7 @@ import time
 import os
 from os import listdir
 from os.path import isfile, join
+from PIL import Image  # for mirror image
 
 # OS-Umgebung ---WIN10.10.02
 
@@ -17,8 +18,8 @@ DISPLAYHEIGHT = 600
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
 
-BLOCKWIDTH = 25
-BLOCKHEIGHT = 25
+BLOCKWIDTH = 50
+BLOCKHEIGHT = 50
 
 # colors
 WHITE = (255, 255, 255)
@@ -31,17 +32,11 @@ GRAY = (109, 107, 118)
 # init display
 gameDisplay = pg.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
 
-# sprite preparation
-left_walk = []
-right_walk = []
-up_walk = []  # sprung
-down_walk = []  # landen
-
 # level preparation
 LEVEL_LENGTH = 2
-ARRAY_Y = (DISPLAYWIDTH // BLOCKWIDTH)  # * LEVEL_LENGTH  = 24
+ARRAY_Y = (DISPLAYWIDTH // BLOCKWIDTH)  # * LEVEL_LENGTH
 ARRAY_X = DISPLAYHEIGHT // BLOCKHEIGHT  #
-NORMAL_GROUND = BLOCKHEIGHT * (2 / 3 * ARRAY_X)
+NORMAL_GROUND = BLOCKHEIGHT * ((2 * ARRAY_X) // 3)  # normalground ist die kleinste Höhe auf der sich spieler befindet
 
 """
     Erstellen des Levels, auslagern 
@@ -50,26 +45,46 @@ NORMAL_GROUND = BLOCKHEIGHT * (2 / 3 * ARRAY_X)
 """
 
 # level grafics
-resources_path = "res/level/"
+resources_path_level = "res/level/"
 # todo: hier aus großem Bild entsprechende Sachen ausschneiden
 # siehe Youtube Video
-ground = pg.transform.scale(pg.image.load(resources_path + "ground.png"), (BLOCKWIDTH, BLOCKHEIGHT))  # 1 in array
+ground = pg.transform.scale(pg.image.load(resources_path_level + "ground.png"), (BLOCKWIDTH, BLOCKHEIGHT))  # 1 in array
 
-# load player assets
-only_files = [files for files in listdir("res/player/") if isfile(join("res/player/", files))]
+# player preparation
+left_walk = []
+right_walk = []
+jump_walk = []  # sprung
+idle_walk = []  # landen
+PLAYERHEIGHT = 75
+PLAYERWIDTH = 50
 
+# player grafics
+resources_path_player = "res/player/"
+only_files = [files for files in listdir(resources_path_player) if isfile(join(resources_path_player, files))]
+
+"""
+# transpose pictures
 for myfile in only_files:
     if "right" in myfile:
-        right_walk.append(pg.image.load("res/player/" + myfile))
+        img = Image.open(resources_path_player + myfile)
+        img.transpose(Image.FLIP_LEFT_RIGHT).save(resources_path_player + "transpose_" + myfile)
+"""
+
+for myfile in only_files:
     if "left" in myfile:
-        left_walk.append(pg.image.load("res/player/" + myfile))
-    # jump, down mising
+        left_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
+    if "right" in myfile:
+        right_walk.append(
+            pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
+    if "jump" in myfile:
+        jump_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
+    if "idle" in myfile:
+        idle_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
 
 
 def game_main(level_num):
     level = Level(level_num)  # Erstellen des Levels und Ausgabe von Start Level mit x = 0
-    player = Player(DISPLAYWIDTH // 2,
-                    NORMAL_GROUND - 31)  # todo: x pos. von Player soll am Anfang 0 sein und erst nach ein paar Metern in der Mitte
+    player = Player(0, NORMAL_GROUND - PLAYERHEIGHT)
     run(level, player)  # solange hier drin bis Level zu Ende
 
 
@@ -79,7 +94,7 @@ def run(level, player):
     mv_left = False
     mv_right = False
     mv_up = False
-    mv_down = False
+    mv_idle = True
 
     while running:
         for event in pg.event.get():
@@ -110,8 +125,7 @@ def run(level, player):
                     mv_right = False
                 if event.key == pg.K_UP or event.key == pg.K_w:
                     mv_up = False
-                if event.key == pg.K_DOWN or event.key == pg.K_s:
-                    mv_down = False
+                mv_idle = True
 
         # movement
         if mv_left:
@@ -120,7 +134,7 @@ def run(level, player):
             player.move(1)
         if mv_up:
             player.move(2)
-        if mv_down:
+        if mv_idle:
             player.move(3)
 
 
@@ -142,7 +156,7 @@ class Character:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = 15
+        self.speed = 50
         self.height = 32  # character picture height
         self.width = 16  # character picture width
         self.animation_count = 0
@@ -157,24 +171,31 @@ class Character:
             return True
 
 
-class Player(Character):  # Aufruf mit: player(main.display_width / 2, main.display_height / 3)
+class Player(Character):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.draw(1)
+        self.draw(3)
 
     def draw(self, direction):
         self.animation_count += 1
-        if self.animation_count + 1 >= 4:  # da nur 5 Bilder pro Movement haben
-            self.animation_count = 0
-
         if direction == 0:
+            if self.animation_count + 1 >= len(left_walk):
+                self.animation_count = 0
             gameDisplay.blit(left_walk[self.animation_count], (self.x, self.y))
         elif direction == 1:
+            if self.animation_count + 1 >= len(right_walk):
+                self.animation_count = 0
+                if self.x < (DISPLAYWIDTH / 2 - PLAYERWIDTH / 2):
+                    self.x += self.speed
             gameDisplay.blit(right_walk[self.animation_count], (self.x, self.y))
         elif direction == 2:
-            gameDisplay.blit(up_walk[self.animation_count], (self.x, self.y))
+            if self.animation_count + 1 >= len(jump_walk):
+                self.animation_count = 0
+            gameDisplay.blit(jump_walk[self.animation_count], (self.x, self.y))
         elif direction == 3:
-            gameDisplay.blit(down_walk[self.animation_count], (self.x, self.y))
+            if self.animation_count + 1 >= len(idle_walk):
+                self.animation_count = 0
+            gameDisplay.blit(idle_walk[self.animation_count], (self.x, self.y))
         pg.display.update()
         clock.tick(50)
 
