@@ -3,9 +3,8 @@ import time
 import os
 from os import listdir
 from os.path import isfile, join
-from PIL import Image  # for mirror image todo: am Ende löschen
 from enum import Enum  # für enums  todo: wird derzeit nicht benötigt
-
+from menu import player1
 # import skrits from project
 from level import get_level_array
 
@@ -128,7 +127,7 @@ def run(level, player):
      	    - Gegener sichtbart machen/ erstellen, abhägig von absoluter Position von Player
      	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
     """
-
+    player1.draw_self()
     running = True
     pg.key.set_repeat(100,
                       100)  # erster par. wann das erste mal wiederholt wird, zweiter par. ab dem 2ten mal Intervall
