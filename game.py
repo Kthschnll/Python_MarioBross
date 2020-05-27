@@ -26,7 +26,7 @@ HALF_DISPLAYWIDTH = DISPLAYHEIGHT / 2
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
 
-BLOCKWIDTH = 50
+BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
 BLOCKHEIGHT = 50
 
 # colors
@@ -41,9 +41,8 @@ GRAY = (109, 107, 118)
 gameDisplay = pg.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
 
 # level preparation
-temp_y = DISPLAYHEIGHT // BLOCKHEIGHT  # 12 # todo gerade unnötig
-temp_x = (DISPLAYWIDTH // BLOCKWIDTH) * level_length  # 20 # todo gerade unnötig
-NORMAL_GROUND = (DISPLAYHEIGHT // 3) * 2  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
+NORMAL_GROUND = (
+                        DISPLAYHEIGHT // 3) * 2  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 
 # level grafics
 resources_path_level = "res/level/"
@@ -82,6 +81,7 @@ for myfile in only_files:
     if "idle" in myfile:
         idle_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
 
+
 def game_main(level_num):
     """
      	date:
@@ -102,6 +102,7 @@ def game_main(level_num):
     level = Level(level_num)  # Erstellen des Levels und Ausgabe von Start Level mit x = 0
     player = Player(NORMAL_GROUND - PLAYERHEIGHT, 20, PLAYERHEIGHT, PLAYERWIDTH, 2)
     run(level, player)  # solange hier drin bis Level zu Ende
+
 
 def run(level, player):
     """
@@ -125,7 +126,8 @@ def run(level, player):
     """
 
     running = True
-    pg.key.set_repeat(50, 50)  # erster par. wann das erste mal wiederholt wird, zweiter par. ab dem 2ten mal Intervall
+    pg.key.set_repeat(100,
+                      100)  # erster par. wann das erste mal wiederholt wird, zweiter par. ab dem 2ten mal Intervall
 
     while running:
         for event in pg.event.get():
@@ -156,12 +158,15 @@ def run(level, player):
 
         # Dauerschleife für idle falls kein neues event in python
         player.draw(3)
+        """
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # max.x relative position von Player, damit dieser in der Mitte erscheint
-        if player.x < max_x:    # wenn absolute Position noch nicht in der Mitte von Bildschirm ist
-            max_x = player.x    # setzte relative Position ist gleich absolute Position
+        if player.x < max_x:  # wenn absolute Position noch nicht in der Mitte von Bildschirm ist
+            max_x = player.x  # setzte relative Position ist gleich absolute Position
         gameDisplay.fill(GREEN)
-        player_rect = pygame.Rect(max_x, player.y, PLAYERWIDTH, PLAYERHEIGHT)
-        pygame.display.update(player_rect) # nur Bereich von Player updaten
+        player_rect = pg.Rect(max_x, player.y, PLAYERWIDTH, PLAYERHEIGHT)
+        pg.display.update(player_rect)  # nur Bereich von Player updaten
+        """
+
 
 class Level:
     """
@@ -169,6 +174,7 @@ class Level:
      	    - erstellen des Arrays auslagern in andere Datei
      	    - Level muss am ende eine halbe displaygröße gößer sein wie letzte letzte absolute Player position
     """
+
     def __init__(self, num):
         self.x = 0  # x = Feld das ganz Links im Window angezeigt wird
         """
@@ -179,7 +185,9 @@ class Level:
         # generate Level to see something
         # array hat y Listen, jede Liste hat x werte
         # level_array mit Nullen befüllen
-        # level_length = 5
+        level_length = 5
+        temp_y = DISPLAYHEIGHT // BLOCKHEIGHT  # 12
+        temp_x = (DISPLAYWIDTH // BLOCKWIDTH) * level_length  # 20
         self.level_array = [[0 for i in range(temp_y)] for j in range(temp_x)]
         # einzelne Werte in Array eingeben
         #   [Liste][Element] ; NORMAL_GROUND // BLOCKHEIGHT = 8
@@ -194,7 +202,7 @@ class Level:
         	    - 27.05.2020
         	desc:
         	    - das Level (2-Dimensionales Array) wird gezeichnet in Abhängigkeit von absoluter x-Position Player
-        	    - es wird berechnet welcher Bereich des Arrays auf Window gezeichnet werden muss
+        	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
         	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
         	param:
                 - player.x
@@ -204,40 +212,50 @@ class Level:
         	    - neue Berechnung wie weit array ausgegeben werden muss (dani)
         	    - nicht nur ganze arrays überspringen sondern self.player.speed (dani)
         	    - ende von array muss sich auf spieler zu bewegen (dani)
+        	    - in if neue Blockarten reinmachen
         """
 
         """player_array_pos = player_pos // BLOCKWIDTH  # position von player im Array
         space = (DISPLAYWIDTH // 2) // BLOCKWIDTH  # Felder die nach links/rechts auf display kommen
         print(player_array_pos, space)
         """
-        player_pos -
+        anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
+        max_x_player = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # 475
+        if player_pos > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
+            rest = player_pos % BLOCKWIDTH  # rest = anzahl Pixel die Player über player_array ist
+            player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
+            space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
+            left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
+            print(player_pos, rest, player_list, space, left_list)
 
-        = player_pos + SPACE
 
-        if player_array_pos > space:
-            left_border = player_array_pos - space
-            right_border = player_array_pos + space
-        else:  # Spieler läuft die ersten paar Meter -> nach links geht Level nicht weiter
-            left_border = 0
-            right_border = temp_x
-
-        # for-loop begrenzen
-        for x in range(left_border, right_border):
-            for y in range(0, temp_y):
-                value = self.level_array[x][y]
+        else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
+            left_list = 0
+            rest = 0
+            player_list = player_pos // BLOCKWIDTH
+            print(player_pos, player_list, max_x_player)
+        i = 0
+        # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
+        for x in range(left_list, left_list + anz_listen + 1):
+            for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
+                value = self.level_array[x][y]  # value = id von richtigem Block
                 if value == 1:  # ground
-                    gameDisplay.blit(ground, (x * BLOCKWIDTH, y * BLOCKHEIGHT))
+                    block = ground
+                else:
+                    continue
+                gameDisplay.blit(block, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+            i += 1
 
 
 class Character:
     def __init__(self, x, y, speed, height, width, health):
-        self.x = x  #  absolute position in Pixel
+        self.x = x  # absolute position in Pixel
         self.y = y  # absolute Position in Pixel
         self.speed = speed
         self.height = height  # character picture height
         self.width = width  # character picture width
         self.animation_count = 0
-        self.health = health    # Gesundheit
+        self.health = health  # Gesundheit
 
     def hit(self):
         """
@@ -259,7 +277,8 @@ class Character:
 
 class Player(Character):
     def __init__(self, y, speed, height, width, health):
-        super().__init__(BLOCKWIDTH, y, speed, height, width, health)   # player Anfangsposition ist BLOCKWidth vom linken Diplayrand
+        super().__init__(BLOCKWIDTH, y, speed, height, width,
+                         health)  # player Anfangsposition ist BLOCKWidth vom linken Diplayrand
 
     def draw(self, direction):
         """
@@ -278,7 +297,7 @@ class Player(Character):
         """
 
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
-        self.animation_count += 1   # damit die nächste Animation geladen wird
+        self.animation_count += 1  # damit die nächste Animation geladen wird
 
         if self.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
             max_x = self.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
@@ -287,9 +306,11 @@ class Player(Character):
 
         # left
         if direction == 0:
-            if self.animation_count + 1 >= len(left_walk):  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
+            if self.animation_count + 1 >= len(
+                    left_walk):  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
                 self.animation_count = 0
-            gameDisplay.blit(left_walk[self.animation_count], (max_x, self.y))  # Player an Position auf Display zeichnen
+            gameDisplay.blit(left_walk[self.animation_count],
+                             (max_x, self.y))  # Player an Position auf Display zeichnen
         # right
         elif direction == 1:
             if self.animation_count + 1 >= len(right_walk):
@@ -336,7 +357,7 @@ class Player(Character):
             self.draw(direction)
             self.y += self.speed
             # todo: ist :  self.level_array[][]
-        collide(level)
+        self.collide(level)
 
     def collide(self, level):
         """
@@ -374,7 +395,8 @@ class Enemy(Character):
         """
         pass
 
-#todo: Aufruf aus menu
+
+# todo: Aufruf aus menu
 
 level_num = 1
 game_main(level_num)
