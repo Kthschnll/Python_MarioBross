@@ -6,6 +6,10 @@ from os.path import isfile, join
 from PIL import Image  # for mirror image todo: am Ende löschen
 from enum import Enum  # für enums  todo: wird derzeit nicht benötigt
 
+# import skrits from project
+from level import get_level_array
+
+
 # wichtig: - absolute Postion des Player -> insgesamter Bewegungfortschritt; zurückgelegte distanz des Player
 #          - raltive Position von Player -> x-Position auf dem Bildschirm
 # todo (am Ende):   - extra: in allen Methoden angeben wie sie getestet werden können
@@ -176,24 +180,7 @@ class Level:
     """
 
     def __init__(self, num):
-        self.x = 0  # x = Feld das ganz Links im Window angezeigt wird
-        """
-        if num == 0:
-            # todo: entprechendes array laden, aus anderer Datei laden
-            #   self.level_array = ...
-        """
-        # generate Level to see something
-        # array hat y Listen, jede Liste hat x werte
-        # level_array mit Nullen befüllen
-        level_length = 5
-        temp_y = DISPLAYHEIGHT // BLOCKHEIGHT  # 12
-        temp_x = (DISPLAYWIDTH // BLOCKWIDTH) * level_length  # 20
-        self.level_array = [[0 for i in range(temp_y)] for j in range(temp_x)]
-        # einzelne Werte in Array eingeben
-        #   [Liste][Element] ; NORMAL_GROUND // BLOCKHEIGHT = 8
-        for i in range(0, 10):
-            self.level_array[i][NORMAL_GROUND // BLOCKHEIGHT] = 1  # 1 = normal ground
-        self.level_array[19][NORMAL_GROUND // BLOCKHEIGHT] = 1
+        self.level_array = get_level_array(num)
         self.draw_level(0)
 
     def draw_level(self, player_pos):
@@ -209,16 +196,9 @@ class Level:
             return:
                 - nothing
         	todo:
-        	    - neue Berechnung wie weit array ausgegeben werden muss (dani)
-        	    - nicht nur ganze arrays überspringen sondern self.player.speed (dani)
-        	    - ende von array muss sich auf spieler zu bewegen (dani)
         	    - in if neue Blockarten reinmachen
         """
 
-        """player_array_pos = player_pos // BLOCKWIDTH  # position von player im Array
-        space = (DISPLAYWIDTH // 2) // BLOCKWIDTH  # Felder die nach links/rechts auf display kommen
-        print(player_array_pos, space)
-        """
         anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
         max_x_player = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # 475
         if player_pos > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
@@ -226,14 +206,11 @@ class Level:
             player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
             space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
             left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
-            print(player_pos, rest, player_list, space, left_list)
-
 
         else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
             left_list = 0
             rest = 0
             player_list = player_pos // BLOCKWIDTH
-            print(player_pos, player_list, max_x_player)
         i = 0
         # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
         for x in range(left_list, left_list + anz_listen + 1):
@@ -245,7 +222,6 @@ class Level:
                     continue
                 gameDisplay.blit(block, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
-
 
 class Character:
     def __init__(self, x, y, speed, height, width, health):

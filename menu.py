@@ -13,6 +13,8 @@ display_height = 600
 
 # menu grafics
 resources_path = "res/menu/"
+resources_path_player = "res/player/"
+resources_path_level_background = "res/level_background/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -43,14 +45,27 @@ for i in range(len(button_names)):
     play_button_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
-#load charrackter sprites
+# load charrackter sprites
 run_right_img_list = []
 stay_img_list = []
+j = 0
 for i in range(8):
-    run_right_img_list.append(pygame.transform.scale(pygame.image.load(resources_path + "frame_" + str(i) + "_delay-0.1s.gif"), (50, 75)))
-for i in range(10):
+    run_right_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"), (50, 75)))
+for i in range(12):
     stay_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path + "frame1_0" + str(i) + "_delay-0.1s.gif"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
+                               (50, 75)))
+    if i == 8:
+        j = str(j)
+        j = ""
+
+# load level background
+background_img = []
+for i in range(5):
+    background_img.append(
+        pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
+                               (1000, 600)))
 # colors
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -113,9 +128,10 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
-#Class Player
+
+# Class Player
 class Player:
-    def __init__(self,player_rect,current_move,move_list,img_list,state):
+    def __init__(self, player_rect, current_move, move_list, img_list, state):
         self.player_rect = player_rect
         self.current_move = current_move
         self.move_list = move_list
@@ -123,15 +139,50 @@ class Player:
         self.state = state
 
     def draw_self(self):
-        if self.state%2 == 0:
-            gameDisplay.blit(self.img_list[self.current_move][int(self.state/2)],(self.player_rect.x,self.player_rect.y))
-        if self.state < (len(self.img_list[self.current_move])-1)*2:
+
+        gameDisplay.blit(self.img_list[self.current_move][int(self.state)], (self.player_rect.x, self.player_rect.y))
+        if self.state < (len(self.img_list[self.current_move]) - 1):
             self.state += 1
-        else: self.state = 0
+        else:
+            self.state = 0
 
 
-#create a Player
-player1 = Player(pygame.Rect(200,200,50,75),0,[0,1],[stay_img_list,run_right_img_list],0)
+# create a Player
+player1 = Player(pygame.Rect(400, 400, 50, 75), 0, [0, 1], [stay_img_list, run_right_img_list], 0)
+
+sporn_x = 990
+
+
+class Background:
+    def __init__(self, x, y, speed, image, position):
+        self.x = x
+        self.y = y
+        self.speed = speed
+        self.image = image
+
+    def draw_self(self, player):
+        gameDisplay.blit(self.image, (self.x, self.y))
+        if player.current_move == 1:
+            if self.x > -sporn_x:
+                self.x -= self.speed
+            else:
+                self.x = sporn_x
+
+
+# create backgrounds
+background_4 = Background(0, 0, 0, background_img[4], 0)
+background_32 = Background(sporn_x, 0, 1, background_img[3], 0)
+background_31 = Background(0, 0, 1, background_img[3], 0)
+background_22 = Background(sporn_x, 0, 2, background_img[2], 0)
+background_21 = Background(0, 0, 2, background_img[2], 0)
+background_12 = Background(sporn_x, 0, 3, background_img[1], 0)
+background_11 = Background(0, 0, 3, background_img[1], 0)
+background_02 = Background(sporn_x, 0, 5, background_img[0], 0)
+background_01 = Background(0, 0, 5, background_img[0], 0)
+
+background_list = [background_4, background_32, background_31, background_22, background_21, background_12,
+                   background_11, background_02, background_01]
+
 
 # printen
 def text_object(text="", font="", color="red"):
@@ -164,8 +215,7 @@ clock = pygame.time.Clock()
 
 
 def draw_menu_background(text=""):
-    gameDisplay.blit(menu_background, (0, 0))
-    gameDisplay.blit(menu_navbar, (0, 0))
+    gameDisplay.blit(menu_background, (0, 38))
     static_display(text, 20, white, (100, 100))
 
 
@@ -182,7 +232,7 @@ def draw_level_place_holder():
             y = j * 250 + 100
             gameDisplay.blit(level_background, (x, y))
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
-            if (j*3 + i) > 0:
+            if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, gray, (x + 100, y + 90))
 
 
@@ -192,6 +242,11 @@ def draw_level_nums():
             x = i % 3 * 290 + 80
             y = j * 250 + 100
             static_display(str(j * 3 + i + 1), 40, white, (x + 40, y + 40))
+
+
+def draw_level_background(player):
+    for i in range(len(background_list)):
+        background_list[i].draw_self(player)
 
 
 def check_buttons():
@@ -248,7 +303,7 @@ def check_trans_button(button, image_list):
             button.is_painted = color
 
 
-def check_events(game_state,player=player1):
+def check_events(game_state, player=player1):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -296,16 +351,6 @@ def check_events(game_state,player=player1):
                 player1.state = 0
     return game_state
 
-def check_player_events(player):
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                player.current_move = 1
-                player1.state = 0
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                player.current_move = 0
-                player1.state = 0
 
 def options_menu_loop(game_state, former_game_state):
     draw_options_background()
@@ -320,19 +365,20 @@ def options_menu_loop(game_state, former_game_state):
 
 
 def menu_home_loop(game_state):
+    gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background("Home")
 
     while game_state == 0:
         draw_menu_background("Home")
-        player1.draw_self()
         check_buttons()
-        game_state = check_events(game_state,player1)
+        game_state = check_events(game_state, player1)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(20)
     return game_state
 
 
 def menu_level_loop(game_state):
+    gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
     draw_level_place_holder()
     draw_level_nums()
@@ -347,13 +393,16 @@ def menu_level_loop(game_state):
 
 
 def menu_score_loop(game_state):
+    gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
 
     while game_state == 2:
+        draw_level_background(player1)
+        player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(100)
     return game_state
 
 
