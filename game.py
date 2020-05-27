@@ -3,7 +3,7 @@ import time
 import os
 from os import listdir
 from os.path import isfile, join
-from PIL import Image  # for mirror image todo: am Ende löschen
+
 from enum import Enum  # für enums  todo: enum für left_walk,right_walk,jump_walk,idle_walk um entprechenden, siehe player.draw
 
 

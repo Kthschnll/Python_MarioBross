@@ -45,23 +45,27 @@ for i in range(len(button_names)):
     play_button_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
-#load charrackter sprites
+# load charrackter sprites
 run_right_img_list = []
 stay_img_list = []
 j = 0
 for i in range(8):
-    run_right_img_list.append(pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i+1) + ".png"), (50, 75)))
+    run_right_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"), (50, 75)))
 for i in range(12):
     stay_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "idle" +str(j)+ str(i+1) + ".png"), (50, 75)))
-    if i == 8 :
-        j= str(j)
-        j= ""
+        pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
+                               (50, 75)))
+    if i == 8:
+        j = str(j)
+        j = ""
 
-#load level background
+# load level background
 background_img = []
-for i in range (5):
-    background_img.append(pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i+1) + ".png"), (1000, 600)))
+for i in range(5):
+    background_img.append(
+        pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
+                               (1000, 600)))
 # colors
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -124,9 +128,10 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
-#Class Player
+
+# Class Player
 class Player:
-    def __init__(self,player_rect,current_move,move_list,img_list,state):
+    def __init__(self, player_rect, current_move, move_list, img_list, state):
         self.player_rect = player_rect
         self.current_move = current_move
         self.move_list = move_list
@@ -135,40 +140,48 @@ class Player:
 
     def draw_self(self):
 
-        gameDisplay.blit(self.img_list[self.current_move][int(self.state)],(self.player_rect.x,self.player_rect.y))
-        if self.state < (len(self.img_list[self.current_move])-1):
+        gameDisplay.blit(self.img_list[self.current_move][int(self.state)], (self.player_rect.x, self.player_rect.y))
+        if self.state < (len(self.img_list[self.current_move]) - 1):
             self.state += 1
-        else: self.state = 0
+        else:
+            self.state = 0
 
 
-#create a Player
-player1 = Player(pygame.Rect(200,200,50,75),0,[0,1],[stay_img_list,run_right_img_list],0)
+# create a Player
+player1 = Player(pygame.Rect(400, 400, 50, 75), 0, [0, 1], [stay_img_list, run_right_img_list], 0)
+
+sporn_x = 990
 
 class Background:
-    def __init__(self,x,y,speed,image,position):
+    def __init__(self, x, y, speed, image, position):
         self.x = x
         self.y = y
         self.speed = speed
         self.image = image
 
-    def draw_self(self):
-        gameDisplay.blit(self.image,(self.x,self.y))
-        if self.x > -1000:
-            self.x -= self.speed
-        else: self.x = 998
+    def draw_self(self,player):
+        gameDisplay.blit(self.image, (self.x, self.y))
+        if player.current_move == 1:
+            if self.x > -sporn_x:
+                self.x -= self.speed
+            else:
+                self.x = sporn_x
 
-#create backgrounds
-background_4 = Background(0,0,0,background_img[4],0)
-background_32 = Background(998,0,1,background_img[3],0)
-background_31= Background(0,0,1,background_img[3],0)
-background_22= Background(998,0,2,background_img[2],0)
-background_21= Background(0,0,2,background_img[2],0)
-background_12= Background(998,0,3,background_img[1],0)
-background_11= Background(0,0,3,background_img[1],0)
-background_02= Background(998,0,4,background_img[0],0)
-background_01= Background(0,0,4,background_img[0],0)
 
-background_list = [background_4,background_32,background_31,background_22,background_21,background_12,background_11,background_02,background_01]
+# create backgrounds
+background_4 = Background(0, 0, 0, background_img[4], 0)
+background_32 = Background(sporn_x, 0, 1, background_img[3], 0)
+background_31 = Background(0, 0, 1, background_img[3], 0)
+background_22 = Background(sporn_x, 0, 2, background_img[2], 0)
+background_21 = Background(0, 0, 2, background_img[2], 0)
+background_12 = Background(sporn_x, 0, 3, background_img[1], 0)
+background_11 = Background(0, 0, 3, background_img[1], 0)
+background_02 = Background(sporn_x, 0, 5, background_img[0], 0)
+background_01 = Background(0, 0, 5, background_img[0], 0)
+
+background_list = [background_4, background_32, background_31, background_22, background_21, background_12,
+                   background_11, background_02, background_01]
+
 
 # printen
 def text_object(text="", font="", color="red"):
@@ -218,7 +231,7 @@ def draw_level_place_holder():
             y = j * 250 + 100
             gameDisplay.blit(level_background, (x, y))
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
-            if (j*3 + i) > 0:
+            if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, gray, (x + 100, y + 90))
 
 
@@ -229,9 +242,12 @@ def draw_level_nums():
             y = j * 250 + 100
             static_display(str(j * 3 + i + 1), 40, white, (x + 40, y + 40))
 
-def draw_level_background():
+
+def draw_level_background(player):
+
     for i in range(len(background_list)):
-        background_list[i].draw_self()
+        background_list[i].draw_self(player)
+
 
 def check_buttons():
     for i in range(len(menu_button_list)):
@@ -247,7 +263,6 @@ def check_buttons():
     else:
         options_button.button_color = options_button_list[0]
     options_button.draw_self()
-
 
 
 def check_check_boxes():
@@ -288,7 +303,7 @@ def check_trans_button(button, image_list):
             button.is_painted = color
 
 
-def check_events(game_state,player=player1):
+def check_events(game_state, player=player1):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -336,16 +351,7 @@ def check_events(game_state,player=player1):
                 player1.state = 0
     return game_state
 
-def check_player_events(player):
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                player.current_move = 1
-                player1.state = 0
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                player.current_move = 0
-                player1.state = 0
+
 
 def options_menu_loop(game_state, former_game_state):
     draw_options_background()
@@ -365,9 +371,8 @@ def menu_home_loop(game_state):
 
     while game_state == 0:
         draw_menu_background("Home")
-        player1.draw_self()
         check_buttons()
-        game_state = check_events(game_state,player1)
+        game_state = check_events(game_state, player1)
         pygame.display.update()
         clock.tick(20)
     return game_state
@@ -393,11 +398,12 @@ def menu_score_loop(game_state):
     draw_menu_background()
 
     while game_state == 2:
-        draw_level_background()
+        draw_level_background(player1)
+        player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(100)
     return game_state
 
 
