@@ -142,6 +142,31 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
+class Jump:
+    def __init__(self,is_jumping,next_y,jump_count,jump_size,cancle):
+        self.is_jumping = is_jumping
+        self.next_y = next_y
+        self.jump_count = jump_count
+        self.jump_size = jump_size
+        self.cancle = cancle
+
+    def jump_init(self):
+        self.is_jumping = True
+        self.cancle = False
+        self.jump_count= self.jump_size
+
+    def calc_new_y(self):
+        self.next_y -= self.jump_count*abs(self.jump_count)
+        if self.jump_count == -self.jump_size:
+            self.is_jumping = False
+        if self.cancle and self.jump_count >0:
+            self.jump_count = -self.jump_count
+        else: self.jump_count -= 1
+        return self.next_y
+
+
+
+std_jump = Jump(False,400,0,6,False)
 
 # Class Player
 class Player:
@@ -154,32 +179,24 @@ class Player:
         self.jump = jump
 
     def draw_self(self):
-        if self.jump == 0:
+        if not self.jump.is_jumping:
             gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
                              (self.player_rect.x, self.player_rect.y))
             if self.state < (len(self.img_list[self.current_move]) - 1):
                 self.state += 1
             else:
                 self.state = 0
-        elif 0 < self.jump <= 10:
-            self.player_rect.y -= 8
-            self.jump += 1
-            print("moving up")
-            gameDisplay.blit(self.img_list[self.current_move + 3][1], (self.player_rect.x, self.player_rect.y))
+        else:
+            self.player_rect.y = self.jump.calc_new_y()
+            if self.jump.jump_count >=0 :
+                gameDisplay.blit(self.img_list[self.current_move + 3][1], (self.player_rect.x, self.player_rect.y))
+            else: gameDisplay.blit(self.img_list[self.current_move + 3][2], (self.player_rect.x, self.player_rect.y))
 
-        elif 10 < self.jump <= 20:
-            self.player_rect.y += 8
-            self.jump += 1
-            print("moving down")
-            gameDisplay.blit(self.img_list[self.current_move + 3][2], (self.player_rect.x, self.player_rect.y))
-
-            if self.jump >20:
-                self.jump = 0
 
 
 
 # create a Player
-player1 = Player(pygame.Rect(400, 400, 50, 75), 0, 0, [0, 1, 2, 3, 4, 5, 6],
+player1 = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump, [0, 1, 2, 3, 4, 5, 6],
                  [stay_img_list, run_right_img_list, run_left_img_list,jump_mid_right_img_list, jump_right_img_list, jump_left_img_list,
                    jump_mid_left_img_list], 0)
 
@@ -388,15 +405,18 @@ def check_events(game_state, player=player1):
                 player.current_move = 2
                 player.state = 0
             if event.key == pygame.K_UP:
-                player.jump = 1
-                player.state = 0
+                if not player.jump.is_jumping :
+                    player.state = 0
+                    player.jump.jump_init()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
                 player.current_move = 0
                 player1.state = 0
             if event.key == pygame.K_UP:
-                player.jump += (10 - player.jump) * 2
-                player.state = 0
+                if player.jump.is_jumping:
+                    if not player.jump.cancle:
+                        player.jump.cancle = True
+                        player.state = 0
 
     return game_state
 
