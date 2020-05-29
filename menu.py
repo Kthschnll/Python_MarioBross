@@ -106,6 +106,19 @@ gray = (80, 80, 80)
 # amount of level in level menu
 level_count = 6
 
+# gaming constants
+DISPLAYWIDTH = 1000
+DISPLAYHEIGHT = 600
+BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
+BLOCKHEIGHT = 50
+
+tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
+                                 (350, 550))
+NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
+# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
+PLAYERHEIGHT = 50
+PLAYERWIDTH = 33
+
 
 # Button class
 class Button:
@@ -154,18 +167,6 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
-
-# gaming constants
-DISPLAYWIDTH = 1000
-DISPLAYHEIGHT = 600
-BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
-BLOCKHEIGHT = 50
-
-tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"), (350, 550))   #Katharina
-# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
-PLAYERHEIGHT = 50
-PLAYERWIDTH = 33
-
 
 
 class Jump:
@@ -318,11 +319,12 @@ class Level:
                 if value == 74:
                     continue
                 source_x = (value % tilesheet_columns) * tile_width
-                source_y = (value//tilesheet_columns) * tile_height
+                source_y = (value // tilesheet_columns) * tile_height
                 print(value)
                 print("x-pos Tilesheet", source_x)
                 print("y-pos Tilesheet", source_y)
-                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH, BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
+                                                                                     BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
 
 
@@ -579,13 +581,15 @@ def get_game_events(player, running):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                running= False
+                running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     player.current_move = 1
+                    player.player_rect.x += 10
                     player.state = 0
                 if event.key == pygame.K_LEFT:
                     player.current_move = 2
+                    player.player_rect.x -= 10
                     player.state = 0
                 if event.key == pygame.K_UP:
                     if not player.jump.is_jumping:
@@ -603,22 +607,22 @@ def get_game_events(player, running):
     return running
 
 
-
 def game_loop(level_num):
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND, 50, 33), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
                      jump_left_img_list, jump_mid_left_img_list], 0)
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     # draw_level_background(player)
     # green_enemy1.draw_self()
     level = Level(level_num)
-    level.draw_level(player.x)
     while running:
         get_game_events(player, running)
         gameDisplay.fill(BLUE)
+        level.draw_level(player.player_rect.x)
         player.draw_self()
+
         pygame.display.update()
         clock.tick(30)
 
