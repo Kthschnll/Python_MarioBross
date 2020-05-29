@@ -5,6 +5,9 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
 import pygame
 
+# import skrits from project
+from level import get_level_array
+
 pygame.init()
 
 # display constants
@@ -22,7 +25,7 @@ level_background = pygame.transform.scale(pygame.image.load(resources_path + "Le
 level_place_holder = pygame.transform.scale(pygame.image.load(resources_path + "level_place_holder.png"), (240, 175))
 options_menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Option_menu_background.png"),
                                                  (200, 110))
-default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"),(1, 1))
+default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"), (1, 1))
 
 # load buttons
 button_names = ["_sdt", "_hower", "_clicked"]
@@ -82,8 +85,8 @@ green_enemy_right = []
 green_enemy_left = []
 for i in range(8):
     green_enemy_right.append(
-        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien"+str(i) + ".png"), (50, 75)))
-    green_enemy_left.append(pygame.transform.flip(green_enemy_right[i],True,False))
+        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (50, 75)))
+    green_enemy_left.append(pygame.transform.flip(green_enemy_right[i], True, False))
 
 # load level background
 background_img = []
@@ -97,7 +100,7 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
 green = (0, 255, 0)
-blue = (0, 0, 255)
+BLUE = (0, 153, 220)
 gray = (80, 80, 80)
 
 # amount of level in level menu
@@ -152,6 +155,18 @@ play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_im
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
+# gaming constants
+DISPLAYWIDTH = 1000
+DISPLAYHEIGHT = 600
+BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
+BLOCKHEIGHT = 50
+
+tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"), (350, 550))   #Katharina
+# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
+PLAYERHEIGHT = 50
+PLAYERWIDTH = 33
+
+
 
 class Jump:
     def __init__(self, is_jumping, next_y, jump_count, jump_size, cancle):
@@ -175,9 +190,6 @@ class Jump:
         else:
             self.jump_count -= 1
         return self.next_y
-
-
-std_jump = Jump(False, 400, 0, 6, False)
 
 
 class Species:
@@ -210,16 +222,9 @@ class Player(Species):
                 gameDisplay.blit(self.img_list[self.current_move + 3][2], (self.player_rect.x, self.player_rect.y))
 
 
-# create a Player
-player1 = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
-                 [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                  jump_left_img_list,
-                  jump_mid_left_img_list], 0)
-
-
 # class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive,pace,range,sporn_x):
+    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x):
         super().__init__(player_rect, current_move, img_list, state)
         self.alive = alive
         self.pace = pace
@@ -236,16 +241,17 @@ class Enemy(Species):
 
     def calc_next_x_position(self):
         if self.current_move == 0:
-            if self.player_rect.x < self.sporn_x+self.range:
+            if self.player_rect.x < self.sporn_x + self.range:
                 self.player_rect.x += self.pace
-            else: self.current_move = 1
+            else:
+                self.current_move = 1
         if self.current_move == 1:
-            if self.player_rect.x > self.sporn_x-self.range:
+            if self.player_rect.x > self.sporn_x - self.range:
                 self.player_rect.x -= self.pace
-            else: self.current_move = 0
+            else:
+                self.current_move = 0
 
 
-green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right,green_enemy_left], 0, True,2,60,700)
 sporn_x = 990
 
 
@@ -269,6 +275,55 @@ class Background:
                 self.x += self.speed
             else:
                 self.x = -sporn_x
+
+
+class Level:
+    def __init__(self, num):
+        self.level_array = get_level_array(num)
+        self.draw_level(0)
+
+    def draw_level(self, player_pos):
+        """
+        	date:
+        	    - 27.05.2020
+        	desc:
+        	    - das Level (2-Dimensionales Array) wird gezeichnet in Abhängigkeit von absoluter x-Position Player
+        	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
+        	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
+        	param:
+                - player.x
+            return:
+                - nothing
+        """
+        anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
+        max_x_player = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # 475
+        if player_pos > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
+            rest = player_pos % BLOCKWIDTH  # rest = anzahl Pixel die Player über player_array ist
+            player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
+            space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
+            left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
+
+        else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
+            left_list = 0
+            rest = 0
+            player_list = player_pos // BLOCKWIDTH
+        i = 0
+        # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
+        for x in range(left_list, left_list + anz_listen + 1):
+            for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
+                tile_height = 50
+                tile_width = 50
+                tilesheet_columns = 7
+                value = self.level_array[x][y]  # value = id von richtigem Block
+                if value == 74:
+                    continue
+                source_x = (value % tilesheet_columns) * tile_width
+                source_y = (value//tilesheet_columns) * tile_height
+                print(value)
+                print("x-pos Tilesheet", source_x)
+                print("y-pos Tilesheet", source_y)
+                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH, BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+            i += 1
 
 
 # create backgrounds
@@ -405,11 +460,13 @@ def check_trans_button(button, image_list):
             button.is_painted = color
 
 
-def check_events(game_state, player=player1):
+def check_events(game_state):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 game_state = 100
+            elif event.key == pygame.K_g:
+                game_state = 4
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # 1 is the left mouse button, 2 is middle, 3 is right.
             if event.button == 1:
@@ -443,27 +500,6 @@ def check_events(game_state, player=player1):
                 if play_button.is_clicked:
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                player.current_move = 1
-                player.state = 0
-            if event.key == pygame.K_LEFT:
-                player.current_move = 2
-                player.state = 0
-            if event.key == pygame.K_UP:
-                if not player.jump.is_jumping:
-                    player.state = 0
-                    player.jump.jump_init()
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
-                player.current_move = 0
-                player1.state = 0
-            if event.key == pygame.K_UP:
-                if player.jump.is_jumping:
-                    if not player.jump.cancle:
-                        player.jump.cancle = True
-                        player.state = 0
-
     return game_state
 
 
@@ -486,7 +522,7 @@ def menu_home_loop(game_state):
     while game_state == 0:
         draw_menu_background("Home")
         check_buttons()
-        game_state = check_events(game_state, player1)
+        game_state = check_events(game_state)
         pygame.display.update()
         clock.tick(20)
     return game_state
@@ -500,6 +536,7 @@ def menu_level_loop(game_state):
 
     while game_state == 1:
         check_buttons()
+        # todo: game_state 4 zurückgeben und level Nummer wenn level gestartet werden soll
         check_trans_button(play_button, play_button_img_list)
         game_state = check_events(game_state)
         pygame.display.update()
@@ -512,9 +549,6 @@ def menu_score_loop(game_state):
     draw_menu_background()
 
     while game_state == 2:
-        draw_level_background(player1)
-        green_enemy1.draw_self()
-        player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
@@ -537,6 +571,58 @@ def main():
             former_game_state = 2
         elif game_state == 3:
             game_state = options_menu_loop(3, former_game_state)
+        elif game_state == 4:
+            game_state = game_loop(1)
+
+
+def get_game_events(player, running):
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                running= False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    player.current_move = 1
+                    player.state = 0
+                if event.key == pygame.K_LEFT:
+                    player.current_move = 2
+                    player.state = 0
+                if event.key == pygame.K_UP:
+                    if not player.jump.is_jumping:
+                        player.state = 0
+                        player.jump.jump_init()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+                player.current_move = 0
+                player.state = 0
+            if event.key == pygame.K_UP or event.key == pygame.K_w:
+                if player.jump.is_jumping:
+                    if not player.jump.cancle:
+                        player.jump.cancle = True
+                        player.state = 0
+    return running
+
+
+
+def game_loop(level_num):
+    running = True
+    std_jump = Jump(False, 400, 0, 6, False)
+    player = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
+                    [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
+                     jump_left_img_list, jump_mid_left_img_list], 0)
+    # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
+    # draw_level_background(player)
+    # green_enemy1.draw_self()
+    level = Level(level_num)
+    level.draw_level(player.x)
+    while running:
+        get_game_events(player, running)
+        gameDisplay.fill(BLUE)
+        player.draw_self()
+        pygame.display.update()
+        clock.tick(30)
+
+    return 0
 
 
 main()

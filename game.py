@@ -128,9 +128,6 @@ def run(level, player):
     """
 
     running = True
-    pg.key.set_repeat(100,
-                      100)  # erster par. wann das erste mal wiederholt wird, zweiter par. ab dem 2ten mal Intervall
-
     while running:
         for event in pg.event.get():
             """
@@ -216,22 +213,14 @@ class Level:
                 tile_width = 50
                 tilesheet_columns = 7
                 value = self.level_array[x][y]  # value = id von richtigem Block
-
                 if value == 74:
                     continue
-
                 source_x = (value % tilesheet_columns) * tile_width
                 source_y = (value//tilesheet_columns) * tile_height
                 print(value)
                 print("x-pos Tilesheet", source_x)
                 print("y-pos Tilesheet", source_y)
-
-                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH, BLOCKHEIGHT))
-
-                # im = Image.open("res/level/tileset.png")
-                # sheet = im.crop((source_x, source_y, end_x, end_y))
-                # sheet.show()
-                # gameDisplay.blit(sheet, (i * BLOCKWIDTH - rest,y * BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH, BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
 
 
