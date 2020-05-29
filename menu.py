@@ -203,9 +203,10 @@ class Species:
 
 # Class Player
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state):
+    def __init__(self, player_rect, current_move, jump, img_list, state, speed):
         super().__init__(player_rect, current_move, img_list, state)
         self.jump = jump
+        self.speed = speed
 
     def draw_self(self):
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
@@ -226,6 +227,35 @@ class Player(Species):
             else:
                 gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
 
+    def handle_keys(self, running):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:  # for exit
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        print("rechts")
+                        self.current_move = 1
+                        self.player_rect.x += self.speed
+                        self.state = 0
+                    if event.key == pygame.K_LEFT:
+                        self.current_move = 2
+                        self.player_rect.x -= self.speed
+                        self.state = 0
+                    if event.key == pygame.K_UP:
+                        if not self.jump.is_jumping:
+                            self.state = 0
+                            self.jump.jump_init()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+                    self.current_move = 0
+                    self.state = 0
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if self.jump.is_jumping:
+                        if not self.jump.cancle:
+                            self.jump.cancle = True
+                            self.state = 0
+        return running
 
 # class enemy
 class Enemy(Species):
@@ -581,48 +611,19 @@ def main():
             game_state = game_loop(1)
 
 
-def get_game_events(player, running):
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    player.current_move = 1
-                    player.player_rect.x += 10
-                    player.state = 0
-                if event.key == pygame.K_LEFT:
-                    player.current_move = 2
-                    player.player_rect.x -= 10
-                    player.state = 0
-                if event.key == pygame.K_UP:
-                    if not player.jump.is_jumping:
-                        player.state = 0
-                        player.jump.jump_init()
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
-                player.current_move = 0
-                player.state = 0
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                if player.jump.is_jumping:
-                    if not player.jump.cancle:
-                        player.jump.cancle = True
-                        player.state = 0
-    return running
-
 
 def game_loop(level_num):
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND- PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0)
+                     jump_left_img_list, jump_mid_left_img_list], 0, 100)
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     # draw_level_background(player)
     # green_enemy1.draw_self()
     level = Level(level_num)
     while running:
-        get_game_events(player, running)
+        player.handle_keys(running)
         gameDisplay.fill(BLUE)
         level.draw_level(player.player_rect.x)
         player.draw_self()
