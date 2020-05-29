@@ -208,6 +208,12 @@ class Player(Species):
         self.jump = jump
         self.speed = speed
 
+    def move(self):
+        if self.current_move == 1:
+            self.player_rect.x += self.speed
+        elif self.current_move == 2:
+            self.player_rect.x -= self.speed
+
     def draw_self(self):
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
@@ -236,11 +242,9 @@ class Player(Species):
                     if event.key == pygame.K_RIGHT:
                         print("rechts")
                         self.current_move = 1
-                        self.player_rect.x += self.speed
                         self.state = 0
                     if event.key == pygame.K_LEFT:
                         self.current_move = 2
-                        self.player_rect.x -= self.speed
                         self.state = 0
                     if event.key == pygame.K_UP:
                         if not self.jump.is_jumping:
@@ -611,7 +615,6 @@ def main():
             game_state = game_loop(1)
 
 
-
 def game_loop(level_num):
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
@@ -625,6 +628,7 @@ def game_loop(level_num):
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
+        player.move()
         level.draw_level(player.player_rect.x)
         player.draw_self()
 
