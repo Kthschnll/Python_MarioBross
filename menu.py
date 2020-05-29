@@ -229,7 +229,7 @@ class Player(Species):
         super().__init__(player_rect, current_move, img_list, state, speed, health)
         self.jump = jump
 
-    def move(self):
+    def move(self, level_array):
         """
             date:
                 - 27.05.2020
@@ -243,9 +243,16 @@ class Player(Species):
                 - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
         """
         if self.current_move == 1:
-            self.player_rect.x += self.speed
+            for i in range(1, self.speed + 1):
+                self.player_rect.x += 1
+                ##collide = self.collide(level_array)
+                ##if collide:
+                 #   break
+
         elif self.current_move == 2:
             self.player_rect.x -= self.speed
+            if self.player_rect.x <= 0:
+                self.player_rect.x = 0
 
     def draw_self(self):
         """
@@ -276,7 +283,7 @@ class Player(Species):
             else:
                 gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
 
-    def collide(self):
+    def collide(self, level_array):
         """
              date:
                  - 27.05.2020
@@ -289,9 +296,10 @@ class Player(Species):
              return:
                  - true wenn Gegner gehittet wird
              todo:
-                 - ganze Funktion -> Gegner oder Spiler Leben abziehen
+                 - ganze Funktion -> Gegner oder Spiler Leben abziehen, Mehtode in Level sinnvoll
         """
-        pass
+        # x_player = self.player_rect.x + PLAYERWIDTH
+        # x_level = level_array[][self.player_rect.y//BLOCKHEIGHT]
 
     def handle_keys(self, running):
         for event in pygame.event.get():
@@ -439,6 +447,7 @@ class Level:
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
+
 
 
 # create backgrounds
@@ -724,7 +733,7 @@ def game_loop(level_num):
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
-        player.move()
+        player.move(level.level_array)
         level.draw_level(player.player_rect.x)
         player.draw_self()
 
