@@ -3,12 +3,11 @@ import time
 import os
 from os import listdir
 from os.path import isfile, join
-from PIL import Image  # for mirror image todo: am Ende löschen
+from PIL import Image, ImageGrab  # für crop & spiegeln
 from enum import Enum  # für enums  todo: wird derzeit nicht benötigt
-
+#import cv2
 # import skrits from project
 from level import get_level_array
-
 
 # wichtig: - absolute Postion des Player -> insgesamter Bewegungfortschritt; zurückgelegte distanz des Player
 #          - raltive Position von Player -> x-Position auf dem Bildschirm
@@ -33,25 +32,24 @@ DISPLAYCOLBIT = 32
 BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
 BLOCKHEIGHT = 50
 
+
 # colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+BLUE = (0, 153, 220)
 GRAY = (109, 107, 118)
 
 # init display
 gameDisplay = pg.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
 
 # level preparation
-NORMAL_GROUND = (
-                        DISPLAYHEIGHT // 3) * 2  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
+NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 
-# level grafics
-resources_path_level = "res/level/"
-ground = pg.transform.scale(pg.image.load(resources_path_level + "ground.png"), (BLOCKWIDTH, BLOCKHEIGHT))  # 1 in array
-# todo weiter blöcke hinzufügen, eventuell methode um aus großem bild in python auszuschenden, sinnvoll??
+tileset = pg.transform.scale(pg.image.load("res/level/nature-paltformer-tileset-16x16.png"), (350, 550))   #Katharina
+# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
+
 
 # player preparation
 left_walk = []
@@ -59,8 +57,8 @@ right_walk = []
 jump_walk = []  # sprung
 idle_walk = []  # idle
 
-PLAYERHEIGHT = 75
-PLAYERWIDTH = 50
+PLAYERHEIGHT = 50
+PLAYERWIDTH = 33
 
 # player grafics
 resources_path_player = "res/player/"
@@ -73,7 +71,7 @@ for myfile in only_files:
         img = Image.open(resources_path_player + myfile)
         img.transpose(Image.FLIP_LEFT_RIGHT).save(resources_path_player + "transpose_" + myfile)
 """
-# die Bildernamen in entsprechnedes Array laden
+
 for myfile in only_files:
     if "left" in myfile:
         left_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
@@ -104,7 +102,7 @@ def game_main(level_num):
     """
 
     level = Level(level_num)  # Erstellen des Levels und Ausgabe von Start Level mit x = 0
-    player = Player(NORMAL_GROUND - PLAYERHEIGHT, 20, PLAYERHEIGHT, PLAYERWIDTH, 2)
+    player = Player(NORMAL_GROUND - PLAYERHEIGHT, 100, PLAYERHEIGHT, PLAYERWIDTH, 2)
     run(level, player)  # solange hier drin bis Level zu Ende
 
 
@@ -159,7 +157,7 @@ def run(level, player):
             level.draw_level(player.x)  # um Level Blöcke neu zu zeichen abhänig von absoluter Player Position x
             pg.display.update()  # komplettes window updaten
             clock.tick(30)  # Framerate höchstens 30
-
+        # player1.draw_self()
         # Dauerschleife für idle falls kein neues event in python
         player.draw(3)
         """
@@ -198,7 +196,6 @@ class Level:
         	todo:
         	    - in if neue Blockarten reinmachen
         """
-
         anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
         max_x_player = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # 475
         if player_pos > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
@@ -215,13 +212,29 @@ class Level:
         # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
         for x in range(left_list, left_list + anz_listen + 1):
             for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
+                tile_height = 50
+                tile_width = 50
+                tilesheet_columns = 7
                 value = self.level_array[x][y]  # value = id von richtigem Block
-                if value == 1:  # ground
-                    block = ground
-                else:
+
+                if value == 74:
                     continue
-                gameDisplay.blit(block, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT)) # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+
+                source_x = (value % tilesheet_columns) * tile_width
+                source_y = (value//tilesheet_columns) * tile_height
+                print(value)
+                print("x-pos Tilesheet", source_x)
+                print("y-pos Tilesheet", source_y)
+
+                gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH, BLOCKHEIGHT))
+
+                # im = Image.open("res/level/tileset.png")
+                # sheet = im.crop((source_x, source_y, end_x, end_y))
+                # sheet.show()
+                # gameDisplay.blit(sheet, (i * BLOCKWIDTH - rest,y * BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
+
+
 
 class Character:
     def __init__(self, x, y, speed, height, width, health):
@@ -278,7 +291,7 @@ class Player(Character):
         if self.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
             max_x = self.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
 
-        gameDisplay.fill(GREEN)  # um ganzes Bild neuzuladen # todo:nicht mehr nötig wen Hintergrund davor geladen wird?
+        gameDisplay.fill(BLUE)  # um ganzes Bild neuzuladen # todo:nicht mehr nötig wen Hintergrund davor geladen wird?
 
         # left
         if direction == 0:

@@ -21,8 +21,7 @@ level_background = pygame.transform.scale(pygame.image.load(resources_path + "Le
 level_place_holder = pygame.transform.scale(pygame.image.load(resources_path + "level_place_holder.png"), (240, 175))
 options_menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Option_menu_background.png"),
                                                  (200, 110))
-default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"),
-                                     (1, 1))
+default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"),(1, 1))
 
 # load buttons
 button_names = ["_sdt", "_hower", "_clicked"]
