@@ -49,6 +49,20 @@ for i in range(len(button_names)):
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
 
+# gaming constants
+DISPLAYWIDTH = 1000
+DISPLAYHEIGHT = 600
+BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
+BLOCKHEIGHT = 50
+
+tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
+                                 (350, 550))
+NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
+# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
+PLAYERHEIGHT = 50
+PLAYERWIDTH = 33
+
+
 # load charrackter sprites
 run_right_img_list = []
 run_left_img_list = []
@@ -59,23 +73,23 @@ jump_left_img_list = []
 j = 0
 for i in range(8):
     run_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(12):
     stay_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
-                               (50, 75)))
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
     if i == 8:
         j = str(j)
         j = ""
 for i in range(8):
     run_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(4):
     jump_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(4):
     jump_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
 
 jump_mid_right_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
 jump_mid_left_img_list = [jump_left_img_list[0], jump_left_img_list[0], jump_left_img_list[3]]
@@ -105,20 +119,6 @@ gray = (80, 80, 80)
 
 # amount of level in level menu
 level_count = 6
-
-# gaming constants
-DISPLAYWIDTH = 1000
-DISPLAYHEIGHT = 600
-BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
-BLOCKHEIGHT = 50
-
-tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
-                                 (350, 550))
-NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
-# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
-PLAYERHEIGHT = 50
-PLAYERWIDTH = 33
-
 
 # Button class
 class Button:
@@ -208,9 +208,13 @@ class Player(Species):
         self.jump = jump
 
     def draw_self(self):
+        max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
+        if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
+            max_x = self.player_rect.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
+
         if not self.jump.is_jumping:
             gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
-                             (self.player_rect.x, self.player_rect.y))
+                             (max_x, self.player_rect.y))
             if self.state < (len(self.img_list[self.current_move]) - 1):
                 self.state += 1
             else:
@@ -218,9 +222,9 @@ class Player(Species):
         else:
             self.player_rect.y = self.jump.calc_new_y()
             if self.jump.jump_count >= 0:
-                gameDisplay.blit(self.img_list[self.current_move + 3][1], (self.player_rect.x, self.player_rect.y))
+                gameDisplay.blit(self.img_list[self.current_move + 3][1], (max_x, self.player_rect.y))
             else:
-                gameDisplay.blit(self.img_list[self.current_move + 3][2], (self.player_rect.x, self.player_rect.y))
+                gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
 
 
 # class enemy
@@ -320,9 +324,9 @@ class Level:
                     continue
                 source_x = (value % tilesheet_columns) * tile_width
                 source_y = (value // tilesheet_columns) * tile_height
-                print(value)
-                print("x-pos Tilesheet", source_x)
-                print("y-pos Tilesheet", source_y)
+                #print(value)
+                #print("x-pos Tilesheet", source_x)
+                #print("y-pos Tilesheet", source_y)
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
@@ -610,7 +614,7 @@ def get_game_events(player, running):
 def game_loop(level_num):
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND, 50, 33), 0, std_jump,
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
                      jump_left_img_list, jump_mid_left_img_list], 0)
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
