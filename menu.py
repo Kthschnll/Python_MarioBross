@@ -10,9 +10,31 @@ from level import get_level_array
 
 pygame.init()
 
-# display constants
-display_width = 1000
-display_height = 600
+# wichtig: - absolute Postion des Player -> insgesamter Bewegungfortschritt; zurückgelegte distanz des Player
+#          - raltive Position von Player -> x-Position auf dem Bildschirm
+# todo (am Ende):   - extra: in allen Methoden angeben wie sie getestet werden können
+#                   - in Methoden/Funktionen todos schreiben wie Projekt erweitert werden kann
+#                   - mit der Taste "g" wird Spiel derzeit gestartet
+
+# OS-Umgebung ---WIN10.10.02
+
+
+"""
+from PIL import Image, ImageGrab  # für crop & spiegeln
+# Methode um Bilder zu spiegeln 
+for myfile in only_files:
+    if "right" in myfile:
+        img = Image.open(resources_path_player + myfile)
+        img.transpose(Image.FLIP_LEFT_RIGHT).save(resources_path_player + "transpose_" + myfile)
+"""
+
+# gaming constants
+DISPLAYWIDTH = 1000
+DISPLAYHEIGHT = 600
+BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
+BLOCKHEIGHT = 50
+DISPLAYFLAG = 0
+DISPLAYCOLBIT = 32
 
 # menu grafics
 resources_path = "res/menu/"
@@ -49,19 +71,12 @@ for i in range(len(button_names)):
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
 
-# gaming constants
-DISPLAYWIDTH = 1000
-DISPLAYHEIGHT = 600
-BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
-BLOCKHEIGHT = 50
-
 tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
                                  (350, 550))
 NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 # level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
 PLAYERHEIGHT = 50
 PLAYERWIDTH = 33
-
 
 # load charrackter sprites
 run_right_img_list = []
@@ -73,7 +88,8 @@ jump_left_img_list = []
 j = 0
 for i in range(8):
     run_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(12):
     stay_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
@@ -83,13 +99,16 @@ for i in range(12):
         j = ""
 for i in range(8):
     run_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(4):
     jump_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
 for i in range(4):
     jump_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
+        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
 
 jump_mid_right_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
 jump_mid_left_img_list = [jump_left_img_list[0], jump_left_img_list[0], jump_left_img_list[3]]
@@ -110,15 +129,16 @@ for i in range(5):
                                (1000, 600)))
 
 # colors
-white = (255, 255, 255)
-black = (0, 0, 0)
-red = (255, 0, 0)
-green = (0, 255, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+# GREEN = (0, 255, 0) not used
 BLUE = (0, 153, 220)
-gray = (80, 80, 80)
+GRAY = (109, 107, 118)
 
 # amount of level in level menu
 level_count = 6
+
 
 # Button class
 class Button:
@@ -144,7 +164,7 @@ class Button:
                 self.button_color = button_image_list[2]
 
         gameDisplay.blit(self.button_color, (self.button_rect.x, self.button_rect.y))
-        static_display(self.button_text, 20, white, (self.button_rect.x + 43, self.button_rect.y + 18))
+        static_display(self.button_text, 20, WHITE, (self.button_rect.x + 43, self.button_rect.y + 18))
 
     def action(self, game_state):
         stay = True
@@ -194,27 +214,50 @@ class Jump:
 
 
 class Species:
-    def __init__(self, player_rect, current_move, img_list, state):
+    def __init__(self, player_rect, current_move, img_list, state, speed, health):
         self.player_rect = player_rect
         self.current_move = current_move
         self.img_list = img_list
         self.state = state
+        self.speed = speed
+        self.health = health
 
 
 # Class Player
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state, speed):
-        super().__init__(player_rect, current_move, img_list, state)
+    def __init__(self, player_rect, current_move, jump, img_list, state, speed, health):
+        super().__init__(player_rect, current_move, img_list, state, speed, health)
         self.jump = jump
-        self.speed = speed
 
     def move(self):
+        """
+            date:
+                - 27.05.2020
+            desc:
+                - in Abhängigkeit von der Bewegung die Player (aufgrund von Tastedruck) macht und seinem speed wird sein neue y und seine absolute Postion x ermittel
+            param:
+                - nothing
+            return:
+                - nothing
+            todo:
+                - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
+        """
         if self.current_move == 1:
             self.player_rect.x += self.speed
         elif self.current_move == 2:
             self.player_rect.x -= self.speed
 
     def draw_self(self):
+        """
+            date:
+                - 27.05.2020
+            desc:
+                - in Abhängigkeit von der Bewegung die Player (aufgrund von Tastedruck) macht wird sein neues Bild an der richtigen Position gezeichnet
+            param:
+                - nothing
+            return:
+                - nothing
+        """
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
             max_x = self.player_rect.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
@@ -223,9 +266,9 @@ class Player(Species):
             gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
                              (max_x, self.player_rect.y))
             if self.state < (len(self.img_list[self.current_move]) - 1):
-                self.state += 1
+                self.state += 1  # damit die nächste Animation geladen wird
             else:
-                self.state = 0
+                self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
         else:
             self.player_rect.y = self.jump.calc_new_y()
             if self.jump.jump_count >= 0:
@@ -233,8 +276,30 @@ class Player(Species):
             else:
                 gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
 
+    def collide(self):
+        """
+             date:
+                 - 27.05.2020
+             desc:
+                 - es wird überprüft ob Player und Gegner sich berühren
+                 - wenn berührung stattfindet: Player von oben auf Gegner -> Gegner health - 1
+                 - Gegner von der Seite auf Player -> Player health - 1
+             param:
+                 - nothing
+             return:
+                 - true wenn Gegner gehittet wird
+             todo:
+                 - ganze Funktion -> Gegner oder Spiler Leben abziehen
+        """
+        pass
+
     def handle_keys(self, running):
         for event in pygame.event.get():
+            """
+            if event.type == pg.Quit:
+                running = False
+                pg.QUIT()
+            """
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:  # for exit
                     running = False
@@ -261,10 +326,11 @@ class Player(Species):
                             self.state = 0
         return running
 
+
 # class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x):
-        super().__init__(player_rect, current_move, img_list, state)
+    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x, speed, health):
+        super().__init__(player_rect, current_move, img_list, state, speed, health)
         self.alive = alive
         self.pace = pace
         self.range = range
@@ -279,6 +345,15 @@ class Enemy(Species):
             self.state = 0
 
     def calc_next_x_position(self):
+        """
+        	date:
+        	    - 27.05.2020
+        	desc:
+        	    - bewegt sich immer so lange in eine Richtung bis er kolliediert, dann richuntgswechsel
+        	    - Methode muss im loop mit rein, damit sich Spieler immer beieinem Durchlauf bewegt
+        	todo:
+        	    - viel
+        """
         if self.current_move == 0:
             if self.player_rect.x < self.sporn_x + self.range:
                 self.player_rect.x += self.pace
@@ -330,7 +405,7 @@ class Level:
         	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
         	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
         	param:
-                - player.x
+                - player.player_rect.x
             return:
                 - nothing
         """
@@ -358,9 +433,9 @@ class Level:
                     continue
                 source_x = (value % tilesheet_columns) * tile_width
                 source_y = (value // tilesheet_columns) * tile_height
-                #print(value)
-                #print("x-pos Tilesheet", source_x)
-                #print("y-pos Tilesheet", source_y)
+                # print(value)
+                # print("x-pos Tilesheet", source_x)
+                # print("y-pos Tilesheet", source_y)
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
@@ -382,20 +457,20 @@ background_list = [background_4, background_32, background_31, background_22, ba
 
 
 # printen
-def text_object(text="", font="", color="red"):
+def text_object(text="", font="", color="RED"):
     textSurface = font.render(text, True, color)
     return textSurface, textSurface.get_rect()
 
 
-def message_display(text="", size=50, color="red"):
+def message_display(text="", size=50, color="RED"):
     largeText = pygame.font.Font("freesansbold.ttf", size)
     TextSurf, TextRect = text_object(text, largeText, color)
-    TextRect.center = ((display_width / 2), (display_height / 2))
+    TextRect.center = ((DISPLAYWIDTH / 2), (DISPLAYHEIGHT / 2))
     gameDisplay.blit(TextSurf, TextRect)
     pygame.display.update()
 
 
-def static_display(text="", size=10, color="black", position=((display_width / 2), (display_height / 2))):
+def static_display(text="", size=10, color="BLACK", position=((DISPLAYWIDTH / 2), (DISPLAYHEIGHT / 2))):
     largeText = pygame.font.Font("freesansbold.ttf", size)
     TextSurf, TextRect = text_object(text, largeText, color)
     TextRect.center = position
@@ -404,8 +479,8 @@ def static_display(text="", size=10, color="black", position=((display_width / 2
 
 
 # init display
-gameDisplay = pygame.display.set_mode((display_width, display_height))
-gameDisplay.fill(white)
+gameDisplay = pygame.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
+gameDisplay.fill(WHITE)
 pygame.display.set_caption("MarioPy")
 
 clock = pygame.time.Clock()
@@ -413,13 +488,13 @@ clock = pygame.time.Clock()
 
 def draw_menu_background(text=""):
     gameDisplay.blit(menu_background, (0, 38))
-    static_display(text, 20, white, (100, 100))
+    static_display(text, 20, WHITE, (100, 100))
 
 
 def draw_options_background():
     gameDisplay.blit(options_menu_background, (796, 35))
-    static_display("Music", 20, white, (840, 70))
-    static_display("Sound effects", 18, white, (870, 110))
+    static_display("Music", 20, WHITE, (840, 70))
+    static_display("Sound effects", 18, WHITE, (870, 110))
 
 
 def draw_level_place_holder():
@@ -430,7 +505,7 @@ def draw_level_place_holder():
             gameDisplay.blit(level_background, (x, y))
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
             if (j * 3 + i) > 0:
-                static_display("comming soon...", 20, gray, (x + 100, y + 90))
+                static_display("comming soon...", 20, GRAY, (x + 100, y + 90))
 
 
 def draw_level_nums():
@@ -438,7 +513,7 @@ def draw_level_nums():
         for j in range(int(level_count / 3)):
             x = i % 3 * 290 + 80
             y = j * 250 + 100
-            static_display(str(j * 3 + i + 1), 40, white, (x + 40, y + 40))
+            static_display(str(j * 3 + i + 1), 40, WHITE, (x + 40, y + 40))
 
 
 def draw_level_background(player):
@@ -616,11 +691,32 @@ def main():
 
 
 def game_loop(level_num):
+    """
+     	date:
+     	    - 27.05.2020
+     	desc:
+     	    - hier findet Spielablauf statt (es werde Eingaben entgegengenommen)
+     	    - auf Grund von Events(Tasteneingaben) Gegner und Level verändern
+     	    - Objekte erstellen: Player, (jump), Level, Gegner
+     	param:
+             - level_num: Level Nummer, Auswahl geschieht im Level-Menü
+         return:
+             - game_state: um in menü zurück zu springen
+     	todo:
+     	    - von Level-Menü game_loop aufrufen
+     	    - zurückspringen ins Menü
+     	    - Zeit einbinden im Bild und Button um Spiel abzubrechen
+     	    - Gegener einbinden an den Stellen wo Coins sind (Gegenerlogik)
+     	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
+     	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
+     	    - Highscore abspeichern, diesen im Menü anzeigen können (-> siehe helpful code, zum abspeichern in extra Datei)
+     	    - pygame.Quit() einbauen
+    """
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND- PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0, 20)
+                     jump_left_img_list, jump_mid_left_img_list], 0, 20, 2)
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     # draw_level_background(player)
     # green_enemy1.draw_self()
