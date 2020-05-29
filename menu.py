@@ -620,7 +620,7 @@ def game_loop(level_num):
     std_jump = Jump(False, 400, 0, 6, False)
     player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND- PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0, 100)
+                     jump_left_img_list, jump_mid_left_img_list], 0, 20)
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     # draw_level_background(player)
     # green_enemy1.draw_self()
