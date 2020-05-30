@@ -926,7 +926,6 @@ def check_create(enemy_status, player_pos):
     return enemy_status
 
 
-
 def game_loop(level_num):
     """
      	date:
@@ -965,8 +964,7 @@ def game_loop(level_num):
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
-
-
+        """
         # Gegner einbinden
         enemy_status = check_create(enemy_status, player.player_rect.x)
         for i in enemy_status:
@@ -980,21 +978,16 @@ def game_loop(level_num):
                         enemy_status[j] = 2
                 if i == 2:
                     if j==0:
-                        enemy_1.draw_self()
-                    elif j ==1:
-                        enemy_2.draw_self()
-
-
+                        enemy_1.draw_self(player)
+                    elif j == 1:
+                        enemy_2.draw_self(player)
+        """
         player.draw_self()
 
         time.draw()  # for Time
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     return 0
-
-
-
-
 
 
 main()
