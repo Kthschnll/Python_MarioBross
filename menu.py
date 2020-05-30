@@ -287,7 +287,7 @@ class Species:
 
 
 class Player(Species):
-    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health,level_num):
+    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health, level_num):
         super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.jump = jump
         self.level_array = get_level_array(level_num)
@@ -348,9 +348,11 @@ class Player(Species):
         else:
             self.player_rect.y = self.jump.calc_new_y()
             if self.jump.jump_count >= 0:
-                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[1], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[1],
+                                 (max_x, self.player_rect.y))
             else:
-                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[2], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[2],
+                                 (max_x, self.player_rect.y))
 
     def collide(self):
         """
@@ -460,7 +462,7 @@ class Player(Species):
 
 # create a Player
 player1 = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
-                 std_skin, 0, 7, 3,1)
+                 std_skin, 0, 7, 3, 1)
 
 
 # class enemy
@@ -521,11 +523,12 @@ class Enemy(Species):
         for i in range(6):
             for j in range(len(background_list)):
                 gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
-            gameDisplay.blit(getattr(player.skin,player.move_list[player.current_move])[player.state],
+            gameDisplay.blit(getattr(player.skin, player.move_list[player.current_move])[player.state],
                              (player.player_rect.x, player.player_rect.y))
             if i % 2 == 0:
                 gameDisplay.blit(
-                    pygame.transform.scale(getattr(self.skin,self.move_list[self.current_move])[3], (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
+                    pygame.transform.scale(getattr(self.skin, self.move_list[self.current_move])[3],
+                                           (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
                     (self.player_rect.x, self.player_rect.y + 10))
             pygame.display.update()
             pygame.time.wait(60)
@@ -920,7 +923,7 @@ def check_create(enemy_status, player_pos):
     """
     if player_pos >= 500 and enemy_status[0] == 0:
         enemy_status[0] = 1
-    elif player_pos >= 1000 and enemy_status[1] ==0:
+    elif player_pos >= 1000 and enemy_status[1] == 0:
         enemy_status[1] = 1
 
     return enemy_status
@@ -950,8 +953,9 @@ def game_loop(level_num):
     """
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, move_list_player, std_jump,
-                    red_skin, 0, 20, 2,level_num)
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
+                    move_list_player, std_jump,
+                    red_skin, 0, 20, 2, level_num)
 
     # draw_level_background(player)
 
@@ -964,24 +968,26 @@ def game_loop(level_num):
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
-        """
+
         # Gegner einbinden
         enemy_status = check_create(enemy_status, player.player_rect.x)
         for i in enemy_status:
             for j in range(0, 4):
                 if i == 1:
                     if j == 0:
-                        enemy_1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700,0,0)
+                        enemy_1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30,
+                                        700, 1, 1)
                         enemy_status[j] = 2
                     elif j == 1:
-                        enemy_2 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700,0,0)
+                        enemy_2 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True,
+                                        30, 700, 1, 1)
                         enemy_status[j] = 2
                 if i == 2:
-                    if j==0:
+                    if j == 0:
                         enemy_1.draw_self(player)
                     elif j == 1:
                         enemy_2.draw_self(player)
-        """
+
         player.draw_self()
 
         time.draw()  # for Time
