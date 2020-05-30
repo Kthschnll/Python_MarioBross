@@ -53,7 +53,6 @@ ENEMY_SPAWN = [54, 55, 61, 62]
 
 # menu grafics
 resources_path = "res/menu/"
-resources_path_player = "res/player/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
@@ -96,41 +95,67 @@ run_left_img_list = []
 stay_img_list = []
 jump_right_img_list = []
 jump_left_img_list = []
+red_run_right_img_list = []
+red_run_left_img_list = []
+red_stay_img_list = []
+red_jump_right_img_list = []
+red_jump_left_img_list = []
 
-j = 0
+resources_path_player = "res/"
+skin_list = ["std_skin/", "red_skin/"]
+
+# run images
 for i in range(8):
     run_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"),
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "run_right" + str(i) + ".png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
+    run_left_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "run_right" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    red_run_right_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "run_right" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    red_run_left_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "run_right" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+# stay images
 for i in range(12):
     stay_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "stand" + str(i) + ".png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
-    if i == 8:
-        j = str(j)
-        j = ""
-for i in range(8):
-    run_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"),
-                               (PLAYERWIDTH, PLAYERHEIGHT)))
-for i in range(4):
-    jump_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"),
-                               (PLAYERWIDTH, PLAYERHEIGHT)))
-for i in range(4):
-    jump_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"),
+    red_stay_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[1] + "stand" + str(i) + "_red.png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
 
-jump_mid_right_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
-jump_mid_left_img_list = [jump_left_img_list[0], jump_left_img_list[0], jump_left_img_list[3]]
+# jump images
+for i in range(4):
+    jump_left_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "jump_left" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
+    jump_right_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "jump_left" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    red_jump_left_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "jump_left" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    red_jump_right_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "jump_left" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+
+jump_mid_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
+red_jump_mid_img_list = [red_jump_right_img_list[0], red_jump_right_img_list[0], red_jump_right_img_list[3]]
 
 # load enemy sprites
 green_enemy_right = []
 green_enemy_left = []
 for i in range(8):
     green_enemy_right.append(
-        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
     green_enemy_left.append(pygame.transform.flip(green_enemy_right[i], True, False))
 
 # load level background
@@ -198,6 +223,31 @@ menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
 
+class Skin:
+    def __init__(self, stay, run_right, run_left):
+        self.stay = stay
+        self.run_right = run_right
+        self.run_left = run_left
+
+
+class PlayerSkin(Skin):
+    def __init__(self, stay, run_right, run_left, jump_mid, jump_right, jump_left):
+        super().__init__(stay, run_right, run_left)
+        self.jump_mid = jump_mid
+        self.jump_right = jump_right
+        self.jump_left = jump_left
+
+
+# init Skins
+red_skin = PlayerSkin(red_stay_img_list, red_run_right_img_list, red_run_left_img_list, red_jump_mid_img_list,
+                      red_jump_right_img_list, red_jump_left_img_list)
+std_skin = PlayerSkin(stay_img_list, run_right_img_list, run_left_img_list, jump_mid_img_list,
+                      jump_right_img_list, jump_left_img_list)
+green_alien = Skin(green_enemy_right, green_enemy_right, green_enemy_left)
+move_list_player = ["stay", "run_right", "run_left", "jump_mid", "jump_right", "jump_left"]
+move_list_alien = ["run_right", "run_left"]
+
+
 class Jump:
     def __init__(self, is_jumping, next_y, jump_count, jump_size, cancle):
         self.is_jumping = is_jumping
@@ -222,19 +272,23 @@ class Jump:
         return self.next_y
 
 
+std_jump = Jump(False, 400, 0, 6, False)
+
+
 class Species:
-    def __init__(self, player_rect, current_move, img_list, state, speed, health):
+    def __init__(self, player_rect, current_move, move_list, skin, state, speed, health):
         self.player_rect = player_rect
         self.current_move = current_move
-        self.img_list = img_list
+        self.skin = skin
         self.state = state
         self.speed = speed
         self.health = health
+        self.move_list = move_list
 
 
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state, speed, health, level_num):
-        super().__init__(player_rect, current_move, img_list, state, speed, health)
+    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health,level_num):
+        super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.jump = jump
         self.level_array = get_level_array(level_num)
 
@@ -285,18 +339,18 @@ class Player(Species):
             max_x = self.player_rect.x  # Player ist noch nicht bis zur Mitte gelaufen; Anfang vom Level
 
         if not self.jump.is_jumping:
-            gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
                              (max_x, self.player_rect.y))
-            if self.state < (len(self.img_list[self.current_move]) - 1):
+            if self.state < (len(getattr(self.skin, self.move_list[self.current_move])) - 1):
                 self.state += 1  # damit die nächste Animation geladen wird
             else:
                 self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
         else:
             self.player_rect.y = self.jump.calc_new_y()
             if self.jump.jump_count >= 0:
-                gameDisplay.blit(self.img_list[self.current_move + 3][1], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[1], (max_x, self.player_rect.y))
             else:
-                gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[2], (max_x, self.player_rect.y))
 
     def collide(self):
         """
@@ -404,44 +458,80 @@ class Player(Species):
         return running
 
 
+# create a Player
+player1 = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
+                 std_skin, 0, 7, 3,1)
+
+
+# class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x, speed, health):
-        super().__init__(player_rect, current_move, img_list, state, speed, health)
+    def __init__(self, player_rect, current_move, move_list, skin, state, alive, range, sporn_x, speed, health):
+        super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.alive = alive
-        self.pace = pace
         self.range = range
         self.sporn_x = sporn_x
 
-    def draw_self(self):
-        gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
-        self.calc_next_x_position()
-        if self.state < (len(self.img_list[self.current_move]) - 1):
-            self.state += 1
-        else:
-            self.state = 0
+    def draw_self(self, player):
+        if self.alive:
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[self.state],
+                             (self.player_rect.x, self.player_rect.y))
+            self.collide_detection(player)
+            self.calc_next_x_position(player)
+            if self.state < (len(self.skin.run_right) - 1):
+                self.state += 1
+            else:
+                self.state = 0
 
-    def calc_next_x_position(self):
-        """
-        	date:
-        	    - 27.05.2020
-        	desc:
-        	    - bewegt sich immer so lange in eine Richtung bis er kolliediert, dann richuntgswechsel
-        	    - Methode muss im loop mit rein, damit sich Spieler immer beieinem Durchlauf bewegt
-        	todo:
-        	    - viel
-        """
+    def calc_next_x_position(self, player):
         if self.current_move == 0:
             if self.player_rect.x < self.sporn_x + self.range:
-                self.player_rect.x += self.pace
+                if player.current_move == 1:
+                    self.player_rect.x += (self.speed - player.speed)
+                    self.sporn_x -= player.speed
+                elif player.current_move == 2:
+                    self.player_rect.x += (self.speed + player.speed)
+                    self.sporn_x += player.speed
+                else:
+                    self.player_rect.x += self.speed
             else:
                 self.current_move = 1
         if self.current_move == 1:
             if self.player_rect.x > self.sporn_x - self.range:
-                self.player_rect.x -= self.pace
+                if player.current_move == 1:
+                    self.player_rect.x -= (self.speed + player.speed)
+                    self.sporn_x -= player.speed
+                elif player.current_move == 2:
+                    self.player_rect.x -= (self.speed - player.speed)
+                    self.sporn_x += player.speed
+                else:
+                    self.player_rect.x -= self.speed
             else:
                 self.current_move = 0
 
+    def collide_detection(self, player):
+        if self.player_rect.x - PLAYERWIDTH <= player.player_rect.x <= self.player_rect.x + PLAYERWIDTH:
+            if self.player_rect.y - PLAYERHEIGHT + 5 <= player.player_rect.y <= self.player_rect.y + PLAYERHEIGHT + 5:
+                if player.player_rect.y + PLAYERHEIGHT - 15 <= self.player_rect.y:
+                    self.alive = False
+                    self.die_animation(player)
+                else:
+                    print("player lost life")
 
+    def die_animation(self, player):
+        for i in range(6):
+            for j in range(len(background_list)):
+                gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
+            gameDisplay.blit(getattr(player.skin,player.move_list[player.current_move])[player.state],
+                             (player.player_rect.x, player.player_rect.y))
+            if i % 2 == 0:
+                gameDisplay.blit(
+                    pygame.transform.scale(getattr(self.skin,self.move_list[self.current_move])[3], (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
+                    (self.player_rect.x, self.player_rect.y + 10))
+            pygame.display.update()
+            pygame.time.wait(60)
+
+
+green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30, 700, 1, 1)
 sporn_x = 990
 
 
@@ -525,8 +615,8 @@ background_22 = Background(sporn_x, 0, 2, background_img[2], 0)
 background_21 = Background(0, 0, 2, background_img[2], 0)
 background_12 = Background(sporn_x, 0, 3, background_img[1], 0)
 background_11 = Background(0, 0, 3, background_img[1], 0)
-background_02 = Background(sporn_x, 0, 5, background_img[0], 0)
-background_01 = Background(0, 0, 5, background_img[0], 0)
+background_02 = Background(sporn_x, 0, 7, background_img[0], 0)
+background_01 = Background(0, 0, 7, background_img[0], 0)
 
 background_list = [background_4, background_32, background_31, background_22, background_21, background_12,
                    background_11, background_02, background_01]
@@ -651,7 +741,7 @@ def check_trans_button(button, image_list):
             button.is_painted = color
 
 
-def check_events(game_state):
+def check_events(game_state, player=player1):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -691,6 +781,28 @@ def check_events(game_state):
                 if play_button.is_clicked:
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
+                    game_state = 4
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                player.current_move = 1
+                player.state = 0
+            if event.key == pygame.K_LEFT:
+                player.current_move = 2
+                player.state = 0
+            if event.key == pygame.K_UP:
+                if not player.jump.is_jumping:
+                    player.state = 0
+                    player.jump.jump_init()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+                player.current_move = 0
+                player1.state = 0
+            if event.key == pygame.K_UP:
+                if player.jump.is_jumping:
+                    if not player.jump.cancle:
+                        player.jump.cancle = True
+                        player.state = 0
+
     return game_state
 
 
@@ -713,7 +825,7 @@ def menu_home_loop(game_state):
     while game_state == 0:
         draw_menu_background("Home")
         check_buttons()
-        game_state = check_events(game_state)
+        game_state = check_events(game_state, player1)
         pygame.display.update()
         clock.tick(20)
     return game_state
@@ -740,10 +852,13 @@ def menu_score_loop(game_state):
     draw_menu_background()
 
     while game_state == 2:
+        draw_level_background(player1)
+        green_enemy1.draw_self(player1)
+        player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(10)
     return game_state
 
 
@@ -836,9 +951,8 @@ def game_loop(level_num):
     """
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
-                    [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0, 20, 2, level_num)
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, move_list_player, std_jump,
+                    red_skin, 0, 20, 2,level_num)
 
     # draw_level_background(player)
 
