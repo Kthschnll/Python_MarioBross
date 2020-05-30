@@ -83,8 +83,8 @@ green_enemy_right = []
 green_enemy_left = []
 for i in range(8):
     green_enemy_right.append(
-        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien"+str(i) + ".png"), (50, 75)))
-    green_enemy_left.append(pygame.transform.flip(green_enemy_right[i],True,False))
+        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (50, 75)))
+    green_enemy_left.append(pygame.transform.flip(green_enemy_right[i], True, False))
 
 # load level background
 background_img = []
@@ -92,6 +92,8 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
+#load life img
+live_names = [""]
 
 # colors
 white = (255, 255, 255)
@@ -182,17 +184,18 @@ std_jump = Jump(False, 400, 0, 6, False)
 
 
 class Species:
-    def __init__(self, player_rect, current_move, img_list, state):
+    def __init__(self, player_rect, current_move, img_list, state, pace):
         self.player_rect = player_rect
         self.current_move = current_move
         self.img_list = img_list
         self.state = state
+        self.pace = pace
 
 
 # Class Player
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state):
-        super().__init__(player_rect, current_move, img_list, state)
+    def __init__(self, player_rect, current_move, jump, img_list, state,pace,lifes):
+        super().__init__(player_rect, current_move, img_list, state,pace)
         self.jump = jump
 
     def draw_self(self):
@@ -215,38 +218,72 @@ class Player(Species):
 player1 = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
                  [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
                   jump_left_img_list,
-                  jump_mid_left_img_list], 0)
+                  jump_mid_left_img_list], 0,7,3)
 
 
 # class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive,pace,range,sporn_x):
-        super().__init__(player_rect, current_move, img_list, state)
+    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x):
+        super().__init__(player_rect, current_move, img_list, state,pace)
         self.alive = alive
-        self.pace = pace
         self.range = range
         self.sporn_x = sporn_x
 
-    def draw_self(self):
-        gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
-        self.calc_next_x_position()
-        if self.state < (len(self.img_list[self.current_move]) - 1):
-            self.state += 1
-        else:
-            self.state = 0
+    def draw_self(self,player):
+        if self.alive:
+            gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
+            self.collide_detection(player)
+            self.calc_next_x_position(player)
+            if self.state < (len(self.img_list[self.current_move]) - 1):
+                self.state += 1
+            else:
+                self.state = 0
 
-    def calc_next_x_position(self):
+    def calc_next_x_position(self,player):
         if self.current_move == 0:
-            if self.player_rect.x < self.sporn_x+self.range:
-                self.player_rect.x += self.pace
-            else: self.current_move = 1
+            if self.player_rect.x < self.sporn_x + self.range:
+                if player.current_move == 1:
+                    self.player_rect.x += (self.pace-player.pace)
+                    self.sporn_x -= player.pace
+                elif player.current_move == 2:
+                    self.player_rect.x += (self.pace+player.pace)
+                    self.sporn_x += player.pace
+                else: self.player_rect.x += self.pace
+            else:
+                self.current_move = 1
         if self.current_move == 1:
-            if self.player_rect.x > self.sporn_x-self.range:
-                self.player_rect.x -= self.pace
-            else: self.current_move = 0
+            if self.player_rect.x > self.sporn_x - self.range:
+                if player.current_move == 1:
+                    self.player_rect.x -= (self.pace + player.pace)
+                    self.sporn_x -= player.pace
+                elif player.current_move == 2:
+                    self.player_rect.x -= (self.pace - player.pace)
+                    self.sporn_x += player.pace
+                else:
+                    self.player_rect.x -= self.pace
+            else:
+                self.current_move = 0
 
 
-green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right,green_enemy_left], 0, True,2,60,700)
+    def collide_detection(self, player):
+        if self.player_rect.x - 50 <= player.player_rect.x <= self.player_rect.x + 50:
+            if self.player_rect.y - 77 <= player.player_rect.y <= self.player_rect.y + 77:
+                if player.player_rect.y +60 <= self.player_rect.y:
+                    self.alive = False
+                    self.die_animation(player)
+                else: print("player lost life")
+
+    def die_animation(self,player):
+        for i in range (6):
+            for j in range(len(background_list)):
+                gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
+            gameDisplay.blit(player.img_list[player.current_move][player.state], (player.player_rect.x, player.player_rect.y))
+            if i%2 != 0:
+                gameDisplay.blit(self.img_list[self.current_move][3], (self.player_rect.x, self.player_rect.y))
+            pygame.display.update()
+            pygame.time.wait(60)
+
+green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 1, 30, 700)
 sporn_x = 990
 
 
@@ -272,6 +309,7 @@ class Background:
                 self.x = -sporn_x
 
 
+
 # create backgrounds
 background_4 = Background(0, 0, 0, background_img[4], 0)
 background_32 = Background(sporn_x, 0, 1, background_img[3], 0)
@@ -280,8 +318,8 @@ background_22 = Background(sporn_x, 0, 2, background_img[2], 0)
 background_21 = Background(0, 0, 2, background_img[2], 0)
 background_12 = Background(sporn_x, 0, 3, background_img[1], 0)
 background_11 = Background(0, 0, 3, background_img[1], 0)
-background_02 = Background(sporn_x, 0, 5, background_img[0], 0)
-background_01 = Background(0, 0, 5, background_img[0], 0)
+background_02 = Background(sporn_x, 0, 7, background_img[0], 0)
+background_01 = Background(0, 0, 7, background_img[0], 0)
 
 background_list = [background_4, background_32, background_31, background_22, background_21, background_12,
                    background_11, background_02, background_01]
@@ -514,7 +552,7 @@ def menu_score_loop(game_state):
 
     while game_state == 2:
         draw_level_background(player1)
-        green_enemy1.draw_self()
+        green_enemy1.draw_self(player1)
         player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
