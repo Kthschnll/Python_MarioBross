@@ -232,11 +232,12 @@ class Species:
 
 
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state, speed, health):
+    def __init__(self, player_rect, current_move, jump, img_list, state, speed, health, level_num):
         super().__init__(player_rect, current_move, img_list, state, speed, health)
         self.jump = jump
+        self.level_array = get_level_array(level_num)
 
-    def move(self, level_array):
+    def move(self):
         """
             date:
                 - 27.05.2020
@@ -253,17 +254,16 @@ class Player(Species):
         if self.current_move == 1:
             for i in range(1, self.speed + 1):
                 self.player_rect.x += 1
-                collide = self.collide(level_array)
+                collide = self.collide()
                 if collide:
                     self.player_rect.x -= 1
                     break
-
         elif self.current_move == 2:
             for i in range(1, self.speed + 1):
                 self.player_rect.x -= 1
                 if self.player_rect.x <= 0:  # Linkes Bildschirm Ende
                     self.player_rect.x = 0
-                collide = self.collide(level_array)
+                collide = self.collide()
                 if collide:
                     self.player_rect.x += 1
                     break
@@ -297,7 +297,7 @@ class Player(Species):
             else:
                 gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
 
-    def collide(self, level_array):
+    def collide(self):
         """
              date:
                  - 27.05.2020
@@ -322,17 +322,17 @@ class Player(Species):
             pos_player = self.player_rect.x
 
         player_list = pos_player // BLOCKWIDTH  # in welcher Liste sich Player befindet
-        #player_list = (math.ceil(player_list))  # aufrunden und von float in int umwandeln
         player_element = self.player_rect.y // BLOCKHEIGHT
 
-        block_value = level_array[player_list][player_element]
-        print(pos_player)
-        print(player_list, player_element, block_value)
+        block_value = self.level_array[player_list][player_element]
+        #print(pos_player)
+        #print(player_list, player_element, block_value)
 
         if block_value in DECORATION_BLOCK:
             return False
         elif block_value in POWERUP_BLOCK:
             self.collect_drink(block_value)
+            self.level_array[player_list][player_element]= 74 # getränk wird gelöscht
             return False
         elif block_value in RARE_BLOCK:
             print("found rare item")
@@ -469,9 +469,9 @@ class Background:
 class Level:
     def __init__(self, num):
         self.level_array = get_level_array(num)
-        self.draw_level(0)
+        self.draw_level(0, self.level_array)
 
-    def draw_level(self, player_pos):
+    def draw_level(self, player_pos, modified_level):
         """
         	date:
         	    - 27.05.2020
@@ -481,10 +481,11 @@ class Level:
         	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
         	param:
                 - player.player_rect.x
+                - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
             return:
                 - nothing
         """
-
+        self.level_array = modified_level
         anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
         max_x_player = DISPLAYWIDTH / 2  # 500
         if player_pos + PLAYERWIDTH > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
@@ -509,9 +510,6 @@ class Level:
                     continue
                 source_x = (value % tilesheet_columns) * tile_width
                 source_y = (value // tilesheet_columns) * tile_height
-                # print(value)
-                # print("x-pos Tilesheet", source_x)
-                # print("y-pos Tilesheet", source_y)
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
@@ -816,7 +814,7 @@ def game_loop(level_num):
     std_jump = Jump(False, 400, 0, 6, False)
     player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0, 1, 2)
+                     jump_left_img_list, jump_mid_left_img_list], 0, 20, 2, level_num)
 
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     draw_level_background(player)
@@ -827,8 +825,8 @@ def game_loop(level_num):
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
-        player.move(level.level_array)
-        level.draw_level(player.player_rect.x)
+        player.move()
+        level.draw_level(player.player_rect.x, player.level_array)
         player.draw_self()
 
         time.draw()  # for Time
