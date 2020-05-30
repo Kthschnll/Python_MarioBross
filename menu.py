@@ -39,7 +39,6 @@ DISPLAYCOLBIT = 32
 
 # menu grafics
 resources_path = "res/menu/"
-resources_path_player = "res/player/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
@@ -85,41 +84,67 @@ run_left_img_list = []
 stay_img_list = []
 jump_right_img_list = []
 jump_left_img_list = []
+red_run_right_img_list = []
+red_run_left_img_list = []
+red_stay_img_list = []
+red_jump_right_img_list = []
+red_jump_left_img_list = []
 
-j = 0
+resources_path_player = "res/"
+skin_list = ["std_skin/", "red_skin/"]
+
+# run images
 for i in range(8):
     run_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "right0" + str(i + 1) + ".png"),
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "run_right" + str(i) + ".png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
+    run_left_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "run_right" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    red_run_right_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "run_right" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    red_run_left_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "run_right" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+# stay images
 for i in range(12):
     stay_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "idle" + str(j) + str(i + 1) + ".png"),
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "stand" + str(i) + ".png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
-    if i == 8:
-        j = str(j)
-        j = ""
-for i in range(8):
-    run_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "left0" + str(i + 1) + ".png"),
-                               (PLAYERWIDTH, PLAYERHEIGHT)))
-for i in range(4):
-    jump_right_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_right" + str(i) + ".png"),
-                               (PLAYERWIDTH, PLAYERHEIGHT)))
-for i in range(4):
-    jump_left_img_list.append(
-        pygame.transform.scale(pygame.image.load(resources_path_player + "jump_left" + str(i) + ".png"),
+    red_stay_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[1] + "stand" + str(i) + "_red.png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
 
-jump_mid_right_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
-jump_mid_left_img_list = [jump_left_img_list[0], jump_left_img_list[0], jump_left_img_list[3]]
+# jump images
+for i in range(4):
+    jump_left_img_list.append(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "jump_left" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
+    jump_right_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[0] + "jump_left" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    red_jump_left_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "jump_left" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    red_jump_right_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[1] + "jump_left" + str(i) + "_red.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+
+jump_mid_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
+red_jump_mid_img_list = [red_jump_right_img_list[0], red_jump_right_img_list[0], red_jump_right_img_list[3]]
 
 # load enemy sprites
 green_enemy_right = []
 green_enemy_left = []
 for i in range(8):
     green_enemy_right.append(
-        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
+        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"),
+                               (PLAYERWIDTH, PLAYERHEIGHT)))
     green_enemy_left.append(pygame.transform.flip(green_enemy_right[i], True, False))
 
 # load level background
@@ -190,6 +215,31 @@ menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
 
+class Skin:
+    def __init__(self, stay, run_right, run_left):
+        self.stay = stay
+        self.run_right = run_right
+        self.run_left = run_left
+
+
+class PlayerSkin(Skin):
+    def __init__(self, stay, run_right, run_left, jump_mid, jump_right, jump_left):
+        super().__init__(stay, run_right, run_left)
+        self.jump_mid = jump_mid
+        self.jump_right = jump_right
+        self.jump_left = jump_left
+
+
+# init Skins
+red_skin = PlayerSkin(red_stay_img_list, red_run_right_img_list, red_run_left_img_list, red_jump_mid_img_list,
+                      red_jump_right_img_list, red_jump_left_img_list)
+std_skin = PlayerSkin(stay_img_list, run_right_img_list, run_left_img_list, jump_mid_img_list,
+                      jump_right_img_list, jump_left_img_list)
+green_alien = Skin(green_enemy_right, green_enemy_right, green_enemy_left)
+move_list_player = ["stay", "run_right", "run_left", "jump_mid", "jump_right", "jump_left"]
+move_list_alien = ["run_right", "run_left"]
+
+
 class Jump:
     def __init__(self, is_jumping, next_y, jump_count, jump_size, cancle):
         self.is_jumping = is_jumping
@@ -218,19 +268,20 @@ std_jump = Jump(False, 400, 0, 6, False)
 
 
 class Species:
-    def __init__(self, player_rect, current_move, img_list, state, speed, health):
+    def __init__(self, player_rect, current_move, move_list, skin, state, speed, health):
         self.player_rect = player_rect
         self.current_move = current_move
-        self.img_list = img_list
+        self.skin = skin
         self.state = state
         self.speed = speed
         self.health = health
+        self.move_list = move_list
 
 
 # Class Player
 class Player(Species):
-    def __init__(self, player_rect, current_move, jump, img_list, state, speed, health):
-        super().__init__(player_rect, current_move, img_list, state, speed, health)
+    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health):
+        super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.jump = jump
 
     def move(self, level_array):
@@ -269,23 +320,24 @@ class Player(Species):
             return:
                 - nothing
         """
+
         max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
             max_x = self.player_rect.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
 
         if not self.jump.is_jumping:
-            gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
                              (max_x, self.player_rect.y))
-            if self.state < (len(self.img_list[self.current_move]) - 1):
+            if self.state < (len(getattr(self.skin, self.move_list[self.current_move])) - 1):
                 self.state += 1  # damit die nächste Animation geladen wird
             else:
                 self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
         else:
             self.player_rect.y = self.jump.calc_new_y()
             if self.jump.jump_count >= 0:
-                gameDisplay.blit(self.img_list[self.current_move + 3][1], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[1], (max_x, self.player_rect.y))
             else:
-                gameDisplay.blit(self.img_list[self.current_move + 3][2], (max_x, self.player_rect.y))
+                gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[2], (max_x, self.player_rect.y))
 
     def collide(self, level_array):
         """
@@ -337,41 +389,43 @@ class Player(Species):
                             self.jump.cancle = True
                             self.state = 0
         return running
+
+
 # create a Player
-player1 = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
-                 [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                  jump_left_img_list,
-                  jump_mid_left_img_list], 0,7,3)
+player1 = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
+                 std_skin, 0, 7, 3)
 
 
 # class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive, range, sporn_x, speed, health):
-        super().__init__(player_rect, current_move, img_list, state, speed, health)
+    def __init__(self, player_rect, current_move, move_list, skin, state, alive, range, sporn_x, speed, health):
+        super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.alive = alive
         self.range = range
         self.sporn_x = sporn_x
 
-    def draw_self(self,player):
+    def draw_self(self, player):
         if self.alive:
-            gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[self.state],
+                             (self.player_rect.x, self.player_rect.y))
             self.collide_detection(player)
             self.calc_next_x_position(player)
-            if self.state < (len(self.img_list[self.current_move]) - 1):
+            if self.state < (len(self.skin.run_right) - 1):
                 self.state += 1
             else:
                 self.state = 0
 
-    def calc_next_x_position(self,player):
+    def calc_next_x_position(self, player):
         if self.current_move == 0:
             if self.player_rect.x < self.sporn_x + self.range:
                 if player.current_move == 1:
-                    self.player_rect.x += (self.speed-player.speed)
+                    self.player_rect.x += (self.speed - player.speed)
                     self.sporn_x -= player.speed
                 elif player.current_move == 2:
-                    self.player_rect.x += (self.speed+player.speed)
+                    self.player_rect.x += (self.speed + player.speed)
                     self.sporn_x += player.speed
-                else: self.player_rect.x += self.speed
+                else:
+                    self.player_rect.x += self.speed
             else:
                 self.current_move = 1
         if self.current_move == 1:
@@ -387,26 +441,30 @@ class Enemy(Species):
             else:
                 self.current_move = 0
 
-
     def collide_detection(self, player):
         if self.player_rect.x - PLAYERWIDTH <= player.player_rect.x <= self.player_rect.x + PLAYERWIDTH:
-            if self.player_rect.y - PLAYERHEIGHT+5 <= player.player_rect.y <= self.player_rect.y + PLAYERHEIGHT+5:
-                if player.player_rect.y +PLAYERHEIGHT-15 <= self.player_rect.y:
+            if self.player_rect.y - PLAYERHEIGHT + 5 <= player.player_rect.y <= self.player_rect.y + PLAYERHEIGHT + 5:
+                if player.player_rect.y + PLAYERHEIGHT - 15 <= self.player_rect.y:
                     self.alive = False
                     self.die_animation(player)
-                else: print("player lost life")
+                else:
+                    print("player lost life")
 
-    def die_animation(self,player):
-        for i in range (6):
+    def die_animation(self, player):
+        for i in range(6):
             for j in range(len(background_list)):
                 gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
-            gameDisplay.blit(player.img_list[player.current_move][player.state], (player.player_rect.x, player.player_rect.y))
-            if i%2 == 0:
-                gameDisplay.blit(pygame.transform.scale(self.img_list[self.current_move][3],(PLAYERWIDTH,(PLAYERHEIGHT-10))), (self.player_rect.x, self.player_rect.y+10))
+            gameDisplay.blit(getattr(player.skin,player.move_list[player.current_move])[player.state],
+                             (player.player_rect.x, player.player_rect.y))
+            if i % 2 == 0:
+                gameDisplay.blit(
+                    pygame.transform.scale(getattr(self.skin,self.move_list[self.current_move])[3], (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
+                    (self.player_rect.x, self.player_rect.y + 10))
             pygame.display.update()
             pygame.time.wait(60)
 
-green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75),0, [green_enemy_right, green_enemy_left], 0, True,  30, 700, 1,1)
+
+green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30, 700, 1, 1)
 sporn_x = 990
 
 
@@ -732,7 +790,7 @@ def menu_score_loop(game_state):
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(10)
     return game_state
 
 
@@ -774,7 +832,7 @@ class Timer:
         end = time.time()
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
-        #gprint("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+        # gprint("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
         gameDisplay.blit(timer, (0, 0))
 
@@ -803,30 +861,26 @@ def game_loop(level_num):
     """
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, std_jump,
-                    [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
-                     jump_left_img_list, jump_mid_left_img_list], 0, 20, 2)
+    player = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
+                    red_skin, 0, 7, 3)
+
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
     # draw_level_background(player)
     # green_enemy1.draw_self()
     level = Level(level_num)
     time = Timer()
 
-
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
         player.move(level.level_array)
         level.draw_level(player.player_rect.x)
-        player.draw_self() # drt
+        player.draw_self()  # drt
 
-
-        time.draw ()    # for Time
-        pygame.display.update() # Display updaten
-        clock.tick(30) # max 30 Herz
+        time.draw()  # for Time
+        pygame.display.update()  # Display updaten
+        clock.tick(30)  # max 30 Herz
     return 0
 
 
 main()
-
-
