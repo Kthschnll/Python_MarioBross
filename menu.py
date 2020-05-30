@@ -151,6 +151,7 @@ GRAY = (109, 107, 118)
 # amount of level in level menu
 level_count = 6
 
+
 class Button:
     def __init__(self, button_text, button_rect, function, is_clicked=False, button_color=button_image_list[0],
                  image_below=default_img, is_painted=0):
@@ -279,7 +280,7 @@ class Player(Species):
             return:
                 - nothing
         """
-        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH # relative Position von Player, damit Player in der Mitte des Display erscheint
+        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH  # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
             max_x = self.player_rect.x  # Player ist noch nicht bis zur Mitte gelaufen; Anfang vom Level
 
@@ -325,14 +326,14 @@ class Player(Species):
         player_element = self.player_rect.y // BLOCKHEIGHT
 
         block_value = self.level_array[player_list][player_element]
-        #print(pos_player)
-        #print(player_list, player_element, block_value)
+        # print(pos_player)
+        # print(player_list, player_element, block_value)
 
         if block_value in DECORATION_BLOCK:
             return False
         elif block_value in POWERUP_BLOCK:
             self.collect_drink(block_value)
-            self.level_array[player_list][player_element]= 74 # getränk wird gelöscht
+            self.level_array[player_list][player_element] = 74  # getränk wird gelöscht
             return False
         elif block_value in RARE_BLOCK:
             print("found rare item")
@@ -479,6 +480,7 @@ class Level:
         	    - das Level (2-Dimensionales Array) wird gezeichnet in Abhängigkeit von absoluter x-Position Player
         	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
         	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
+
         	param:
                 - player.player_rect.x
                 - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
@@ -493,7 +495,7 @@ class Level:
             player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
             space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
             left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
-            #print(rest, player_list, space, left_list)
+            # print(rest, player_list, space, left_list)
         else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
             left_list = 0
             rest = 0
@@ -788,6 +790,28 @@ class Timer:
         gameDisplay.blit(timer, (0, 0))
 
 
+def check_create(enemy_status, player_pos):
+    """
+        date:
+            - 27.05.2020
+        desc:
+            - es wird überprüft ob aufgrund von der Player Position ein Gegner erstellt werden muss
+        param:
+            - player_pos: Distanz die Spieler zurückgelgt hat
+        return:
+            - enemy
+        todo:
+            - noch mehr gegner erstellen abh. von player_pos
+    """
+    if player_pos >= 500 and enemy_status[0] == 0:
+        enemy_status[0] = 1
+    elif player_pos >= 1000 and enemy_status[1] ==0:
+        enemy_status[1] = 1
+
+    return enemy_status
+
+
+
 def game_loop(level_num):
     """
      	date:
@@ -816,10 +840,10 @@ def game_loop(level_num):
                     [stay_img_list, run_right_img_list, run_left_img_list, jump_mid_right_img_list, jump_right_img_list,
                      jump_left_img_list, jump_mid_left_img_list], 0, 20, 2, level_num)
 
-    # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
-    draw_level_background(player)
-    # green_enemy1.draw_self()
+    # draw_level_background(player)
+
     level = Level(level_num)
+    enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 0 = nicht erstellt,  1 = erstellen, 2 = erstellt, 3 = tot,
     time = Timer()
 
     while running:
@@ -827,12 +851,36 @@ def game_loop(level_num):
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
+
+
+        # Gegner einbinden
+        enemy_status = check_create(enemy_status, player.player_rect.x)
+        for i in enemy_status:
+            for j in range(0, 4):
+                if i == 1:
+                    if j == 0:
+                        enemy_1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700,0,0)
+                        enemy_status[j] = 2
+                    elif j == 1:
+                        enemy_2 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700,0,0)
+                        enemy_status[j] = 2
+                if i == 2:
+                    if j==0:
+                        enemy_1.draw_self()
+                    elif j ==1:
+                        enemy_2.draw_self()
+
+
         player.draw_self()
 
         time.draw()  # for Time
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     return 0
+
+
+
+
 
 
 main()
