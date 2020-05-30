@@ -118,7 +118,7 @@ green_enemy_right = []
 green_enemy_left = []
 for i in range(8):
     green_enemy_right.append(
-        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (50, 75)))
+        pygame.transform.scale(pygame.image.load(resources_path_enemy + "green_alien" + str(i) + ".png"), (PLAYERWIDTH, PLAYERHEIGHT)))
     green_enemy_left.append(pygame.transform.flip(green_enemy_right[i], True, False))
 
 # load level background
@@ -345,51 +345,52 @@ player1 = Player(pygame.Rect(400, 400, 50, 75), 0, std_jump,
 
 # class enemy
 class Enemy(Species):
-    def __init__(self, player_rect, current_move, img_list, state, alive, pace, range, sporn_x, speed, health):
+    def __init__(self, player_rect, current_move, img_list, state, alive, range, sporn_x, speed, health):
         super().__init__(player_rect, current_move, img_list, state, speed, health)
         self.alive = alive
-        self.pace = pace
         self.range = range
         self.sporn_x = sporn_x
 
-    def draw_self(self):
-        gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
-        self.calc_next_x_position()
-        if self.state < (len(self.img_list[self.current_move]) - 1):
-            self.state += 1
-        else:
-            self.state = 0
+    def draw_self(self,player):
+        if self.alive:
+            gameDisplay.blit(self.img_list[self.current_move][self.state], (self.player_rect.x, self.player_rect.y))
+            self.collide_detection(player)
+            self.calc_next_x_position(player)
+            if self.state < (len(self.img_list[self.current_move]) - 1):
+                self.state += 1
+            else:
+                self.state = 0
 
     def calc_next_x_position(self,player):
         if self.current_move == 0:
             if self.player_rect.x < self.sporn_x + self.range:
                 if player.current_move == 1:
-                    self.player_rect.x += (self.pace-player.pace)
-                    self.sporn_x -= player.pace
+                    self.player_rect.x += (self.speed-player.speed)
+                    self.sporn_x -= player.speed
                 elif player.current_move == 2:
-                    self.player_rect.x += (self.pace+player.pace)
-                    self.sporn_x += player.pace
-                else: self.player_rect.x += self.pace
+                    self.player_rect.x += (self.speed+player.speed)
+                    self.sporn_x += player.speed
+                else: self.player_rect.x += self.speed
             else:
                 self.current_move = 1
         if self.current_move == 1:
             if self.player_rect.x > self.sporn_x - self.range:
                 if player.current_move == 1:
-                    self.player_rect.x -= (self.pace + player.pace)
-                    self.sporn_x -= player.pace
+                    self.player_rect.x -= (self.speed + player.speed)
+                    self.sporn_x -= player.speed
                 elif player.current_move == 2:
-                    self.player_rect.x -= (self.pace - player.pace)
-                    self.sporn_x += player.pace
+                    self.player_rect.x -= (self.speed - player.speed)
+                    self.sporn_x += player.speed
                 else:
-                    self.player_rect.x -= self.pace
+                    self.player_rect.x -= self.speed
             else:
                 self.current_move = 0
 
 
     def collide_detection(self, player):
-        if self.player_rect.x - 50 <= player.player_rect.x <= self.player_rect.x + 50:
-            if self.player_rect.y - 77 <= player.player_rect.y <= self.player_rect.y + 77:
-                if player.player_rect.y +60 <= self.player_rect.y:
+        if self.player_rect.x - PLAYERWIDTH <= player.player_rect.x <= self.player_rect.x + PLAYERWIDTH:
+            if self.player_rect.y - PLAYERHEIGHT+5 <= player.player_rect.y <= self.player_rect.y + PLAYERHEIGHT+5:
+                if player.player_rect.y +PLAYERHEIGHT-15 <= self.player_rect.y:
                     self.alive = False
                     self.die_animation(player)
                 else: print("player lost life")
@@ -399,12 +400,12 @@ class Enemy(Species):
             for j in range(len(background_list)):
                 gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
             gameDisplay.blit(player.img_list[player.current_move][player.state], (player.player_rect.x, player.player_rect.y))
-            if i%2 != 0:
-                gameDisplay.blit(self.img_list[self.current_move][3], (self.player_rect.x, self.player_rect.y))
+            if i%2 == 0:
+                gameDisplay.blit(pygame.transform.scale(self.img_list[self.current_move][3],(PLAYERWIDTH,(PLAYERHEIGHT-10))), (self.player_rect.x, self.player_rect.y+10))
             pygame.display.update()
             pygame.time.wait(60)
 
-green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 1, 30, 700)
+green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75),0, [green_enemy_right, green_enemy_left], 0, True,  30, 700, 1,1)
 sporn_x = 990
 
 
