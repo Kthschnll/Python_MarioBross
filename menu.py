@@ -4,6 +4,7 @@ from enum import Enum
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
 import pygame
+import time
 
 # import skrits from project
 from level import get_level_array
@@ -247,7 +248,7 @@ class Player(Species):
                 self.player_rect.x += 1
                 ##collide = self.collide(level_array)
                 ##if collide:
-                 #   break
+                #   break
 
         elif self.current_move == 2:
             self.player_rect.x -= self.speed
@@ -447,7 +448,6 @@ class Level:
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
-
 
 
 # create backgrounds
@@ -699,6 +699,30 @@ def main():
             game_state = game_loop(1)
 
 
+class Timer:
+    def __init__(self):
+        self.start = time.time()  # starter tick
+        self.font = pygame.font.SysFont(None, 40)  # create Font
+
+    def draw(self):
+        """
+            date:
+                - 27.05.2020
+            desc:
+                - Timer wird im richtigen Format auf Display gezeichnet
+            param:
+                - nothing
+            return:
+                - nothing
+        """
+        end = time.time()
+        hours, rem = divmod(end - self.start, 3600)
+        minutes, seconds = divmod(rem, 60)
+        #gprint("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+        timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
+        gameDisplay.blit(timer, (0, 0))
+
+
 def game_loop(level_num):
     """
      	date:
@@ -730,17 +754,23 @@ def game_loop(level_num):
     # draw_level_background(player)
     # green_enemy1.draw_self()
     level = Level(level_num)
+    time = Timer()
+
+
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
         player.move(level.level_array)
         level.draw_level(player.player_rect.x)
-        player.draw_self()
+        player.draw_self() # drt
 
-        pygame.display.update()
-        clock.tick(30)
 
+        time.draw ()    # for Time
+        pygame.display.update() # Display updaten
+        clock.tick(30) # max 30 Herz
     return 0
 
 
 main()
+
+
