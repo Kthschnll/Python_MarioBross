@@ -459,7 +459,7 @@ class Player(Species):
 
 # create a Player
 player1 = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
-                 std_skin, 0, 7, 3)
+                 std_skin, 0, 7, 3,1)
 
 
 # class enemy
