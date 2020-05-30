@@ -279,9 +279,9 @@ class Player(Species):
             return:
                 - nothing
         """
-        max_x = DISPLAYWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
+        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
-            max_x = self.player_rect.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
+            max_x = self.player_rect.x  # Player ist noch nicht bis zur Mitte gelaufen; Anfang vom Level
 
         if not self.jump.is_jumping:
             gameDisplay.blit(self.img_list[self.current_move][int(self.state)],
@@ -501,12 +501,14 @@ class Level:
         # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
         for x in range(left_list, left_list + anz_listen + 1):
             for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
+                tile_height = 50
+                tile_width = 50
                 tilesheet_columns = 7
                 value = self.level_array[x][y]  # value = id von richtigem Block
                 if value == 74:
                     continue
-                source_x = (value % tilesheet_columns) * BLOCKWIDTH
-                source_y = (value // tilesheet_columns) * BLOCKHEIGHT
+                source_x = (value % tilesheet_columns) * tile_width
+                source_y = (value // tilesheet_columns) * tile_height
                 # print(value)
                 # print("x-pos Tilesheet", source_x)
                 # print("y-pos Tilesheet", source_y)
