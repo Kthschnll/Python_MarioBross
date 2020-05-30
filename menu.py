@@ -5,6 +5,7 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
 import pygame
 import time
+import math  # für math.ceil (aufrunden)
 
 # import skrits from project
 from level import get_level_array
@@ -36,6 +37,19 @@ BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = g
 BLOCKHEIGHT = 50
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
+
+NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
+# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
+PLAYERHEIGHT = 50
+PLAYERWIDTH = 50
+
+# define_blocks
+DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 40, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
+POWERUP_BLOCK = [56, 57, 63, 64]
+RARE_BLOCK = [45, 46, 47, 48]
+END_BLOCK = 11  # Ende von Spiel
+ENEMY_SPAWN = [54, 55, 61, 62]
+# nonpassable = alle Anderen
 
 # menu grafics
 resources_path = "res/menu/"
@@ -71,12 +85,9 @@ for i in range(len(button_names)):
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
 
+# load tileset
 tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
                                  (350, 550))
-NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
-# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
-PLAYERHEIGHT = 50
-PLAYERWIDTH = 33
 
 # load charrackter sprites
 run_right_img_list = []
@@ -165,8 +176,6 @@ GRAY = (109, 107, 118)
 # amount of level in level menu
 level_count = 6
 
-
-# Button class
 class Button:
     def __init__(self, button_text, button_rect, function, is_clicked=False, button_color=button_image_list[0],
                  image_below=default_img, is_painted=0):
@@ -202,7 +211,6 @@ class Button:
 
 
 # create buttons
-
 home_button = Button("Home", pygame.Rect(4, 5, 90, 30), 0)
 level_button = Button("Level", pygame.Rect(98, 5, 90, 30), 1)
 scores_button = Button("Scores", pygame.Rect(192, 5, 90, 30), 2)
@@ -210,7 +218,6 @@ options_button = Button("", pygame.Rect(966, 5, 30, 30), 3, False, options_butto
 check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, False, cb_img_list[0])
 check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, False, cb_img_list[0])
 play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_place_holder)
-
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
 
@@ -278,13 +285,13 @@ class Species:
         self.move_list = move_list
 
 
-# Class Player
 class Player(Species):
-    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health):
+    def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health,level_num):
         super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
         self.jump = jump
+        self.level_array = get_level_array(level_num)
 
-    def move(self, level_array):
+    def move(self):
         """
             date:
                 - 27.05.2020
@@ -296,18 +303,24 @@ class Player(Species):
                 - nothing
             todo:
                 - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
+                - todo Schleifen zählung nicht +1 sondern effizienter
         """
         if self.current_move == 1:
             for i in range(1, self.speed + 1):
                 self.player_rect.x += 1
-                ##collide = self.collide(level_array)
-                ##if collide:
-                #   break
-
+                collide = self.collide()
+                if collide:
+                    self.player_rect.x -= 1
+                    break
         elif self.current_move == 2:
-            self.player_rect.x -= self.speed
-            if self.player_rect.x <= 0:
-                self.player_rect.x = 0
+            for i in range(1, self.speed + 1):
+                self.player_rect.x -= 1
+                if self.player_rect.x <= 0:  # Linkes Bildschirm Ende
+                    self.player_rect.x = 0
+                collide = self.collide()
+                if collide:
+                    self.player_rect.x += 1
+                    break
 
     def draw_self(self):
         """
@@ -320,10 +333,9 @@ class Player(Species):
             return:
                 - nothing
         """
-
-        max_x = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # relative Position von Player, damit Player in der Mitte des Display erscheint
+        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH # relative Position von Player, damit Player in der Mitte des Display erscheint
         if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
-            max_x = self.player_rect.x  # Player ist noch nicht bis zur mitte gelaufen; Anfang vom Level
+            max_x = self.player_rect.x  # Player ist noch nicht bis zur Mitte gelaufen; Anfang vom Level
 
         if not self.jump.is_jumping:
             gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
@@ -339,7 +351,7 @@ class Player(Species):
             else:
                 gameDisplay.blit(getattr(self.skin,self.move_list[self.current_move+3])[2], (max_x, self.player_rect.y))
 
-    def collide(self, level_array):
+    def collide(self):
         """
              date:
                  - 27.05.2020
@@ -353,9 +365,64 @@ class Player(Species):
                  - true wenn Gegner gehittet wird
              todo:
                  - ganze Funktion -> Gegner oder Spiler Leben abziehen, Mehtode in Level sinnvoll
+                 - Bei end block ins Menü zurück oder Animation abspielen und Name eintragen wenn Highscore unter den besten 10
+                 - Funktion bei Block 40 (Wasser)
+                 - eventuell Reihenfolge ändern(effizienter, statt else alle nicht passierbaren Blöcke in Array und an Anfang
         """
-        # x_player = self.player_rect.x + PLAYERWIDTH
-        # x_level = level_array[][self.player_rect.y//BLOCKHEIGHT]
+        if self.current_move == 1:
+            pos_player = self.player_rect.x + PLAYERWIDTH
+
+        elif self.current_move == 2:
+            pos_player = self.player_rect.x
+
+        player_list = pos_player // BLOCKWIDTH  # in welcher Liste sich Player befindet
+        player_element = self.player_rect.y // BLOCKHEIGHT
+
+        block_value = self.level_array[player_list][player_element]
+        #print(pos_player)
+        #print(player_list, player_element, block_value)
+
+        if block_value in DECORATION_BLOCK:
+            return False
+        elif block_value in POWERUP_BLOCK:
+            self.collect_drink(block_value)
+            self.level_array[player_list][player_element]= 74 # getränk wird gelöscht
+            return False
+        elif block_value in RARE_BLOCK:
+            print("found rare item")
+        elif block_value in ENEMY_SPAWN:
+            print("new enemy")
+            return False
+        elif block_value == END_BLOCK:
+            print("Ende")
+            return True
+        else:
+            return True
+
+    def collect_drink(self, num):
+        """
+             date:
+                 - 27.05.2020
+             desc:
+                 - Funktion wird ausgeführt wenn Spieler ein Getränk einsammelt
+                 - es werden je nach Art des Getränks die Spielereigenschaften geändert
+             param:
+                 - num: ID of collected drink
+             return:
+                 - nothing
+             todo:
+                 - Spieler Layout verändern
+                 - Eigneschaften von Spieler beeinflussen
+                 - Timer ablaufen lassen ??
+        """
+        if num == 56:
+            print("Grün")
+        elif num == 57:
+            print("rosa")
+        elif num == 63:
+            print("braun")
+        elif num == 64:
+            print("gelb")
 
     def handle_keys(self, running):
         for event in pygame.event.get():
@@ -369,7 +436,6 @@ class Player(Species):
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RIGHT:
-                        print("rechts")
                         self.current_move = 1
                         self.state = 0
                     if event.key == pygame.K_LEFT:
@@ -493,9 +559,9 @@ class Background:
 class Level:
     def __init__(self, num):
         self.level_array = get_level_array(num)
-        self.draw_level(0)
+        self.draw_level(0, self.level_array)
 
-    def draw_level(self, player_pos):
+    def draw_level(self, player_pos, modified_level):
         """
         	date:
         	    - 27.05.2020
@@ -505,17 +571,19 @@ class Level:
         	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
         	param:
                 - player.player_rect.x
+                - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
             return:
                 - nothing
         """
+        self.level_array = modified_level
         anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
-        max_x_player = DISPLAYWIDTH / 2 - PLAYERWIDTH / 2  # 475
-        if player_pos > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
+        max_x_player = DISPLAYWIDTH / 2  # 500
+        if player_pos + PLAYERWIDTH > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
             rest = player_pos % BLOCKWIDTH  # rest = anzahl Pixel die Player über player_array ist
             player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
             space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
             left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
-
+            #print(rest, player_list, space, left_list)
         else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
             left_list = 0
             rest = 0
@@ -532,9 +600,6 @@ class Level:
                     continue
                 source_x = (value % tilesheet_columns) * tile_width
                 source_y = (value // tilesheet_columns) * tile_height
-                # print(value)
-                # print("x-pos Tilesheet", source_x)
-                # print("y-pos Tilesheet", source_y)
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
                                                                                      BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
             i += 1
@@ -832,7 +897,7 @@ class Timer:
         end = time.time()
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
-        # gprint("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+        # print("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
         gameDisplay.blit(timer, (0, 0))
 
@@ -861,11 +926,11 @@ def game_loop(level_num):
     """
     running = True
     std_jump = Jump(False, 400, 0, 6, False)
-    player = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
-                    red_skin, 0, 7, 3)
+    player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0, move_list_player, std_jump,
+                    red_skin, 0, 20, 2,level_num)
 
     # green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, [green_enemy_right, green_enemy_left], 0, True, 2, 60, 700)
-    # draw_level_background(player)
+    draw_level_background(player)
     # green_enemy1.draw_self()
     level = Level(level_num)
     time = Timer()
@@ -873,9 +938,9 @@ def game_loop(level_num):
     while running:
         player.handle_keys(running)
         gameDisplay.fill(BLUE)
-        player.move(level.level_array)
-        level.draw_level(player.player_rect.x)
-        player.draw_self()  # drt
+        player.move()
+        level.draw_level(player.player_rect.x, player.level_array)
+        player.draw_self()
 
         time.draw()  # for Time
         pygame.display.update()  # Display updaten
