@@ -100,9 +100,14 @@ red_run_left_img_list = []
 red_stay_img_list = []
 red_jump_right_img_list = []
 red_jump_left_img_list = []
+green_run_right_img_list = []
+green_run_left_img_list = []
+green_stay_img_list = []
+green_jump_right_img_list = []
+green_jump_left_img_list = []
 
 resources_path_player = "res/"
-skin_list = ["std_skin/", "red_skin/"]
+skin_list = ["std_skin/", "red_skin/", "green_skin/"]
 
 # run images
 for i in range(8):
@@ -120,6 +125,14 @@ for i in range(8):
         pygame.transform.scale(
             pygame.image.load(resources_path_player + skin_list[1] + "run_right" + str(i) + "_red.png"),
             (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    green_run_right_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[2] + "run_right" + str(i) + "_green.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    green_run_left_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[2] + "run_right" + str(i) + "_green.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
 # stay images
 for i in range(12):
     stay_img_list.append(
@@ -128,6 +141,10 @@ for i in range(12):
     red_stay_img_list.append(
         pygame.transform.scale(pygame.image.load(resources_path_player + skin_list[1] + "stand" + str(i) + "_red.png"),
                                (PLAYERWIDTH, PLAYERHEIGHT)))
+    green_stay_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[2] + "stand" + str(i) + "_green.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
 
 # jump images
 for i in range(4):
@@ -145,9 +162,18 @@ for i in range(4):
         pygame.transform.scale(
             pygame.image.load(resources_path_player + skin_list[1] + "jump_left" + str(i) + "_red.png"),
             (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
+    green_jump_left_img_list.append(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[2] + "jump_left" + str(i) + "_green.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)))
+    green_jump_right_img_list.append(pygame.transform.flip(
+        pygame.transform.scale(
+            pygame.image.load(resources_path_player + skin_list[2] + "jump_left" + str(i) + "_green.png"),
+            (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
 
 jump_mid_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
 red_jump_mid_img_list = [red_jump_right_img_list[0], red_jump_right_img_list[0], red_jump_right_img_list[3]]
+green_jump_mid_img_list = [green_jump_right_img_list[0], green_jump_right_img_list[0], green_jump_right_img_list[3]]
 
 # load enemy sprites
 green_enemy_right = []
@@ -243,6 +269,9 @@ red_skin = PlayerSkin(red_stay_img_list, red_run_right_img_list, red_run_left_im
                       red_jump_right_img_list, red_jump_left_img_list)
 std_skin = PlayerSkin(stay_img_list, run_right_img_list, run_left_img_list, jump_mid_img_list,
                       jump_right_img_list, jump_left_img_list)
+green_skin = PlayerSkin(green_stay_img_list, green_run_right_img_list, green_run_left_img_list, green_jump_mid_img_list,
+                        green_jump_right_img_list, green_jump_left_img_list
+                        )
 green_alien = Skin(green_enemy_right, green_enemy_right, green_enemy_left)
 move_list_player = ["stay", "run_right", "run_left", "jump_mid", "jump_right", "jump_left"]
 move_list_alien = ["run_right", "run_left"]
@@ -272,7 +301,9 @@ class Jump:
         return self.next_y
 
 
-std_jump = Jump(False, 400, 0, 6, False)
+std_jump = Jump(False, 400, 0, 6,
+                False)  # 400 steht für den basis X-Wert von Spieler...wenn der Spieler auf einen Block springt muss hier ein neuer wert eingetragen werden
+high_jump = Jump(False, 400, 0, 8, False)  # für rotes Item
 
 
 class Species:
@@ -285,14 +316,6 @@ class Species:
         self.health = health
         self.move_list = move_list
 
-class Item:
-    def __init__(self,color,image,duration,skin,jump,speed):
-        self.color = color
-        self.image = image
-        self.duration = duration
-        self.skin = skin
-        self.jump = jump
-        self.speed = speed
 
 class Player(Species):
     def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health, level_num):
@@ -428,12 +451,14 @@ class Player(Species):
         """
         if num == 56:
             print("Grün")
+            self = green_item.item_init(self)
         elif num == 57:
-            print("rosa")
+            self = red_item.item_init(self)
         elif num == 63:
             print("braun")
         elif num == 64:
             print("gelb")
+            self = red_item.item_init(self)
 
     def handle_keys(self, running):
         for event in pygame.event.get():
@@ -472,6 +497,41 @@ class Player(Species):
 player1 = Player(pygame.Rect(400, 400, 50, 75), 0, move_list_player, std_jump,
                  std_skin, 0, 7, 3, 1)
 
+
+class Item:
+    def __init__(self, color, collected, duration, skin, jump, speed, health, player_copy):
+        self.color = color
+        self.duration = duration  # in sec
+        self.skin = skin
+        self.jump = jump
+        self.speed = speed
+        self.player_copy = player_copy
+        self.health = health
+        self.collected = collected
+
+    def item_init(self, player):
+        if not self.collected:
+            self.player_copy = player
+            player.skin = self.skin
+            player.jump = self.jump
+            player.speed = self.speed
+            player.health += self.health
+            self.collected = True
+            self.start_time()
+        return player
+
+    def start_time(self):
+        time1 = Timer()
+
+    def time_is_up(self, player):
+        player.skin = self.player_copy.skin
+        player.jump = self.player_copy.jump
+        player.speed = self.player_copy.speed
+        return player
+
+
+red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player1)
+green_item = Item("green",False, 5, green_skin,std_jump,30,0,player1)
 
 # class enemy
 class Enemy(Species):
@@ -961,7 +1021,7 @@ def game_loop(level_num):
     std_jump = Jump(False, 400, 0, 6, False)
     player = Player(pygame.Rect(BLOCKWIDTH, NORMAL_GROUND - PLAYERHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
-                    red_skin, 0, 20, 2, level_num)
+                    std_skin, 0, 20, 2, level_num)
 
     # draw_level_background(player)
 
