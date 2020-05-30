@@ -779,6 +779,7 @@ def check_events(game_state, player=player1):
                 if play_button.is_clicked:
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
+                    game_state = 4
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 player.current_move = 1
