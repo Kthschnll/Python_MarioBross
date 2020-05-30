@@ -40,7 +40,7 @@ DISPLAYCOLBIT = 32
 
 NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 # level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
-PLAYERHEIGHT = 50
+PLAYERHEIGHT = 75
 PLAYERWIDTH = 50
 
 # define_blocks
@@ -284,6 +284,14 @@ class Species:
         self.health = health
         self.move_list = move_list
 
+class Item:
+    def __init__(self,color,image,duration,skin,jump,speed):
+        self.color = color
+        self.image = image
+        self.duration = duration
+        self.skin = skin
+        self.jump = jump
+        self.speed = speed
 
 class Player(Species):
     def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health,level_num):
@@ -837,7 +845,6 @@ def menu_level_loop(game_state):
 
     while game_state == 1:
         check_buttons()
-        # todo: game_state 4 zurückgeben und level Nummer wenn level gestartet werden soll
         check_trans_button(play_button, play_button_img_list)
         game_state = check_events(game_state)
         pygame.display.update()
@@ -916,9 +923,8 @@ def game_loop(level_num):
          return:
              - game_state: um in menü zurück zu springen
      	todo:
-     	    - von Level-Menü game_loop aufrufen
      	    - zurückspringen ins Menü
-     	    - Zeit einbinden im Bild und Button um Spiel abzubrechen
+     	    - Button um Spiel abzubrechen
      	    - Gegener einbinden an den Stellen wo Coins sind (Gegenerlogik)
      	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
      	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
