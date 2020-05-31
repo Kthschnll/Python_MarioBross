@@ -188,6 +188,7 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
+
 # global music varables
 music_on = True
 sound_on = True
@@ -290,7 +291,7 @@ class Timer:
         self.start = time.time()  # starter tick
         self.font = pygame.font.SysFont(None, 40)  # create Font
 
-    def draw(self):
+    def draw(self, lifes):
         """
             date:
                 - 27.05.2020
@@ -305,7 +306,9 @@ class Timer:
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
+        health = self.font.render("Lifes: {0} ".format(int(lifes)), True, WHITE)
         gameDisplay.blit(timer, (0, 0))
+        gameDisplay.blit(health, (0, 50))
 
 
 class Jump:
@@ -1170,7 +1173,7 @@ def game_loop(level_num):
 
         player.draw_self()
         running = player.dead()
-        time.draw()  # for Time
+        time.draw(player.health)  # for Time, and health
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)
