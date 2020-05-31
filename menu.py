@@ -58,6 +58,7 @@ level_place_holder = pygame.transform.scale(pygame.image.load(resources_path + "
 options_menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Option_menu_background.png"),
                                                  (200, 110))
 default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"), (1, 1))
+logo_img = pygame.transform.scale(pygame.image.load(resources_path + "Jumpmaster24_red.png"), (600, 450))
 
 # load buttons
 button_names = ["_sdt", "_hower", "_clicked"]
@@ -186,7 +187,11 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
-
+#global music varables
+music_on = True
+sound_on = True
+music_menu = False
+music_list = ["res/sound/level_music.mp3","res/sound/menu_music.mp3"]
 # colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -194,6 +199,7 @@ RED = (255, 0, 0)
 # GREEN = (0, 255, 0) not used
 BLUE = (0, 153, 220)
 GRAY = (109, 107, 118)
+
 
 # amount of level in level menu
 level_count = 6
@@ -238,8 +244,8 @@ home_button = Button("Home", pygame.Rect(4, 5, 90, 30), 0)
 level_button = Button("Level", pygame.Rect(98, 5, 90, 30), 1)
 scores_button = Button("Scores", pygame.Rect(192, 5, 90, 30), 2)
 options_button = Button("", pygame.Rect(966, 5, 30, 30), 3, False, options_button_list[0])
-check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, False, cb_img_list[0])
-check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, False, cb_img_list[0])
+check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, True, cb_img_list[0])
+check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, True, cb_img_list[0])
 play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_place_holder)
 menu_button_list = [home_button, level_button, scores_button]
 check_box_list = [check_box_music, check_box_sound]
@@ -555,9 +561,11 @@ class Player2(Species):
             font = pygame.font.SysFont(None, 100)  # create Font
             gameDisplay.fill(BLACK)
             ende = font.render(("You Lost"), True, WHITE)
+            play_music(5)
             gameDisplay.blit(ende, (300, 300))
             pygame.display.update()  # Display updaten
             time.sleep(3)
+
             running = False
         else:
             running = True
@@ -1148,8 +1156,24 @@ def check_trans_button(button, image_list):
         if button.is_clicked == False:
             button.is_painted = color
 
+def play_music(game_state):
+    if music_on:
+        global music_menu
+        if game_state < 4:
+            if not music_menu:
+                music_menu = True
+                pygame.mixer.music.load("res/sound/menu_music.mp3")
+        elif game_state == 4 :
+            pygame.mixer.music.load("res/sound/level_music.mp3")
+            music_menu = False
+        elif game_state == 5: pygame.mixer.music.load("res/sound/lost_music.mp3")
+        pygame.mixer.music.play(-1)
+    else:
+        pygame.mixer.music.stop()
+        music_menu = False
 
 def check_events(game_state, player=player1):
+    global music_on
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -1169,9 +1193,15 @@ def check_events(game_state, player=player1):
                     if check_box_list[i].button_rect.collidepoint(event.pos):
                         if check_box_list[i].is_clicked:
                             check_box_list[i].is_clicked = False
+                            if i == 0:
+                               music_on= False
+                               pygame.mixer.music.stop()
                             draw_options_background()
                         else:
                             check_box_list[i].is_clicked = True
+                            if i == 0:
+                                music_on = True
+                                play_music(game_state)
                 if play_button.button_rect.collidepoint(event.pos):
                     play_button.is_clicked = True
                     play_button.is_painted = 2
@@ -1228,10 +1258,10 @@ def options_menu_loop(game_state, former_game_state):
 
 def menu_home_loop(game_state):
     gameDisplay.blit(menu_navbar, (0, 0))
-    draw_menu_background("Home")
+    draw_menu_background("")
+    gameDisplay.blit(logo_img, (185, 100))
 
     while game_state == 0:
-        draw_menu_background("Home")
         check_buttons()
         game_state = check_events(game_state, player1)
         pygame.display.update()
@@ -1272,6 +1302,7 @@ def menu_score_loop(game_state):
 def main():
     game_state = 0
     former_game_state = 0
+    play_music(game_state)
     while game_state != 100:
         if game_state == 0:
             game_state = menu_home_loop(0)
@@ -1339,7 +1370,7 @@ def game_loop(level_num):
     level = Level(level_num)
     enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 0 = nicht erstellt,  1 = erstellen, 2 = erstellt, 3 = tot,
     time = Timer()
-
+    play_music(4)
     while running:
         running = player.handle_keys(running)
         gameDisplay.fill(BLUE)
@@ -1370,6 +1401,7 @@ def game_loop(level_num):
         time.draw()  # for Time
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
+    play_music(0)
     return 0
 
 
