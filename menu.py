@@ -255,7 +255,9 @@ options_button = Button("", pygame.Rect(966, 5, 30, 30), 3, False, options_butto
 check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, True, cb_img_list[0])
 check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, True, cb_img_list[0])
 play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_place_holder)
-menu_button_list = [home_button, level_button, scores_button]
+credits_button = Button("Credits", pygame.Rect(380, 5, 90, 30), 10)
+how_to_play_button = Button("Help",pygame.Rect(286, 5, 90, 30), 9)
+menu_button_list = [home_button, level_button, scores_button,how_to_play_button,credits_button]
 check_box_list = [check_box_music, check_box_sound]
 
 
@@ -1014,7 +1016,30 @@ def check_events(game_state):
                     game_state = 4
 
     return game_state
+def credits_menu_loop(game_state):
+    gameDisplay.blit(menu_navbar, (0, 0))
+    draw_menu_background()
+    text = "Music:"
+    static_display(text, 20, WHITE, (100, 100))
+    text = "www.frametraxx.de/musik/einsatzgebiete/musik-social-media/"
+    static_display(text, 15, WHITE, (295, 120))
+    while game_state == 10:
+        check_buttons()
+        game_state = check_events(game_state)
+        pygame.display.update()
+        clock.tick(20)
+    return game_state
 
+def how_to_play_loop(game_state):
+    gameDisplay.blit(menu_navbar, (0, 0))
+    draw_menu_background()
+
+    while game_state == 9:
+        check_buttons()
+        game_state = check_events(game_state)
+        pygame.display.update()
+        clock.tick(30)
+    return game_state
 
 def options_menu_loop(game_state, former_game_state):
     draw_options_background()
@@ -1089,7 +1114,12 @@ def main():
             game_state = options_menu_loop(3, former_game_state)
         elif game_state == 4:
             game_state = game_loop(1)
-
+        elif game_state == 9 :
+            game_state = how_to_play_loop(game_state)
+            former_game_state = 9
+        elif game_state == 10:
+            game_state = credits_menu_loop(10)
+            former_game_state = 10
 
 def check_create(enemy_status, player_pos):
     """
