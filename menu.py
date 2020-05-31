@@ -188,16 +188,15 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
-#global music varables
+# global music varables
 music_on = True
 sound_on = True
 music_menu = False
-music_list = ["res/sound/level_music.mp3","res/sound/menu_music.mp3"]
+music_list = ["res/sound/level_music.mp3", "res/sound/menu_music.mp3"]
 # colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-# GREEN = (0, 255, 0) not used
 BLUE = (0, 153, 220)
 GRAY = (109, 107, 118)
 
@@ -416,8 +415,8 @@ class Player(Species):
                 if self.player_rect.x <= 0:
                     # Left screen end is reached
                     self.player_rect.x = 0
-                if self.collide(self.player_rect.x, self.player_rect.y) or self.collide(self.player_rect.x,
-                                                                                        self.player_rect.y + PLAYERHEIGHT):
+                if self.collide(self.player_rect.x, self.player_rect.y + 1) or self.collide(self.player_rect.x,
+                                                                                            self.player_rect.y + PLAYERHEIGHT):
                     # coordinate values from top left player or bottom left have collision
                     self.player_rect.x += 1
                     # change players horizontal position back
@@ -541,6 +540,7 @@ class Player(Species):
                     self.current_move = 0
                     self.state = 0
                 if event.key == pygame.K_UP:
+                    # self.current_move = 0
                     self.jump.cancel = True
                     # Jump is canceled, new jump can only start when jump.is_running is set to False
                     self.state = 0
@@ -631,15 +631,15 @@ class Player(Species):
         """
         if num == 56:
             print("Grün")
-            # self = green_item.item_init(self)
+            self = green_item.item_init(self)
         elif num == 57:
             print("rot")
-            # self = red_item.item_init(self)
+            self = red_item.item_init(self)
         elif num == 63:
             print("braun")
         elif num == 64:
             print("gelb")
-            # self = red_item.item_init(self)
+            self = red_item.item_init(self)
 
 
 class Item:
@@ -777,45 +777,55 @@ class Level:
         	date:
         	    - 27.05.2020
         	desc:
-        	    - das Level (2-Dimensionales Array) wird gezeichnet in Abhängigkeit von absoluter x-Position Player
-        	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
-        	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
-
+        	    - level (2-dimensional array) is drawn depending on absolute x-position from player
+        	    - it is calculated which area of the array must be drawn on the display
+        	    - different blocks are drawn depending on the content of the array
         	param:
-                - player.player_rect.x
-                - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
+                - player_pos: absolute horizontal position from player
+                - modified_level: can be different from the one you get in the "Constructor" because collected items disappear
             return:
                 - nothing
-            todo:
-                - comments
         """
         self.level_array = modified_level
-        anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
-        max_x_player = DISPLAYWIDTH / 2  # 500
-        if player_pos + PLAYERWIDTH > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
-            rest = player_pos % BLOCKWIDTH  # rest = anzahl Pixel die Player über player_array ist
-            player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
-            space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
-            left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
-            # print(rest, player_list, space, left_list)
-        else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
+        # get the new array, necessary if item is collected
+        lists = DISPLAYWIDTH // BLOCKWIDTH
+        # number of blocks that are possible on display vertical
+        elements = DISPLAYHEIGHT // BLOCKHEIGHT
+        # number of blocks that are possible on display horizontal
+        max_x_player = DISPLAYWIDTH / 2
+        # max. vertical position from player on display
+        if player_pos + PLAYERWIDTH > max_x_player:
+            # player does not move on, level depending on absolute vertical position from player
+            rest = player_pos % BLOCKWIDTH
+            # the number of pixels the player is over player_array
+            player_list = player_pos // BLOCKWIDTH
+            # in which list player is located
+            space = lists // 2 - 1
+            # number of lists that are shown before and after player_list on display
+            left_list = player_list - space
+            # list shown on the left edge of the display
+        else:
+            # player is not in the middle of the display -> field does not move when player moves
             left_list = 0
             rest = 0
-            player_list = player_pos // BLOCKWIDTH
         i = 0
-        # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
-        for x in range(left_list, left_list + anz_listen + 1):
-            for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
-                tile_height = 50
-                tile_width = 50
+        # for the correct x-position from the blocks
+
+        # blocks are set to display using limited for-loop
+        for x in range(left_list, left_list + lists + 1):
+            for y in range(0, elements):
                 tilesheet_columns = 7
-                value = self.level_array[x][y]  # value = id von richtigem Block
+                # number of columns in the the png "nature-platfromer-tilset"
+                value = self.level_array[x][y]
+                # value = id from Block
                 if value == 74:
                     continue
-                source_x = (value % tilesheet_columns) * tile_width
-                source_y = (value // tilesheet_columns) * tile_height
+                    # because block has the same colour like the background
+                source_x = (value % tilesheet_columns) * BLOCKWIDTH
+                source_y = (value // tilesheet_columns) * BLOCKHEIGHT
+                # source_x and source_y coordinate to get the right asset from the "tileset.png"
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
-                                                                                     BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+                                                                                     BLOCKHEIGHT))
             i += 1
 
 
@@ -945,6 +955,7 @@ def check_trans_button(button, image_list):
         if button.is_clicked == False:
             button.is_painted = color
 
+
 def play_music(game_state):
     if music_on:
         global music_menu
@@ -952,14 +963,16 @@ def play_music(game_state):
             if not music_menu:
                 music_menu = True
                 pygame.mixer.music.load("res/sound/menu_music.mp3")
-        elif game_state == 4 :
+        elif game_state == 4:
             pygame.mixer.music.load("res/sound/level_music.mp3")
             music_menu = False
-        elif game_state == 5: pygame.mixer.music.load("res/sound/lost_music.mp3")
+        elif game_state == 5:
+            pygame.mixer.music.load("res/sound/lost_music.mp3")
         pygame.mixer.music.play(-1)
     else:
         pygame.mixer.music.stop()
         music_menu = False
+
 
 def check_events(game_state):
     global music_on
@@ -983,8 +996,8 @@ def check_events(game_state):
                         if check_box_list[i].is_clicked:
                             check_box_list[i].is_clicked = False
                             if i == 0:
-                               music_on= False
-                               pygame.mixer.music.stop()
+                                music_on = False
+                                pygame.mixer.music.stop()
                             draw_options_background()
                         else:
                             check_box_list[i].is_clicked = True
