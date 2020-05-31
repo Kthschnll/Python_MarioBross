@@ -34,20 +34,19 @@ BLOCKHEIGHT = 50
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
 
-NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 # level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
 PLAYERHEIGHT = 50
 PLAYERWIDTH = 40
 
 # define_blocks
-DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 40, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
+DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
 POWERUP_BLOCK = [56, 57, 63, 64]
 RARE_BLOCK = [45, 46, 47, 48]
 END_BLOCK = 11  # Ende von Spiel
+WATER_BLOCK = 40
 ENEMY_SPAWN = [54, 55, 61, 62]
-NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 2024, 25, 26, 27, 31, 32, 33, 34,
+NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 31, 32, 33, 34,
                       41, 42, 43, 44]
-
 
 # menu grafics
 resources_path = "res/menu/"
@@ -189,16 +188,15 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
-#global music varables
+# global music varables
 music_on = True
 sound_on = True
 music_menu = False
-music_list = ["res/sound/level_music.mp3","res/sound/menu_music.mp3"]
+music_list = ["res/sound/level_music.mp3", "res/sound/menu_music.mp3"]
 # colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-# GREEN = (0, 255, 0) not used
 BLUE = (0, 153, 220)
 GRAY = (109, 107, 118)
 
@@ -352,7 +350,8 @@ class Jump:
             # player can still jump
             for x in range(1, self.size + 1):
                 player.player_rect.y -= 1
-                if player.collide(player.player_rect.x, player.player_rect.y) or player.collide(player.player_rect.x + PLAYERWIDTH, player.player_rect.y):
+                if player.collide(player.player_rect.x, player.player_rect.y) or player.collide(
+                        player.player_rect.x + PLAYERWIDTH, player.player_rect.y):
                     # coordinate values from top left player or top right have collision
                     player.player_rect.y += 1
                     # change players vertical position back
@@ -418,8 +417,8 @@ class Player(Species):
                 if self.player_rect.x <= 0:
                     # Left screen end is reached
                     self.player_rect.x = 0
-                if self.collide(self.player_rect.x, self.player_rect.y) or self.collide(self.player_rect.x,
-                                                                                        self.player_rect.y + PLAYERHEIGHT):
+                if self.collide(self.player_rect.x, self.player_rect.y + 1) or self.collide(self.player_rect.x,
+                                                                                            self.player_rect.y + PLAYERHEIGHT):
                     # coordinate values from top left player or bottom left have collision
                     self.player_rect.x += 1
                     # change players horizontal position back
@@ -431,21 +430,13 @@ class Player(Species):
             self.jump.calc_new_y(self)
 
         # Gravity -> if no jump is performed, check if underground under the player
-        elif not self.collide(self.player_rect.x + PLAYERWIDTH,
-                              self.player_rect.y + PLAYERHEIGHT + 1) and not self.collide(self.player_rect.x,
-                                                                                          self.player_rect.y + PLAYERHEIGHT + 1):
-            # Coordinate values from bottom left player and bottom right player have no collision
+        elif self.collide(self.player_rect.x + PLAYERWIDTH // 2, self.player_rect.y + PLAYERHEIGHT + 1) == False:
+            # Coordinate values from bottom middle player have no collision
             # -> no collision with level blocks when player moves one place down
             for i in range(1, self.jump.size + 1):
-                # count y up, maximal jumpsize if bottom is not reached
+                # count y up, maximal jump.size if bottom is not reached
                 # proof if bottom is reached after every change of players vertical position
                 self.player_rect.y += 1
-                if self.player_rect.y + PLAYERHEIGHT == DISPLAYHEIGHT:
-                    # Player's legs have reached the bottom of water
-                    self.health -= 1
-                    # Life is deducted
-                    break
-
                 if self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT) or self.collide(
                         self.player_rect.x, self.player_rect.y + PLAYERHEIGHT):
                     # Coordinate values from bottom left player and coordinate values from bottom right player
@@ -497,6 +488,11 @@ class Player(Species):
         elif block_value in RARE_BLOCK:
             print("found rare item")
             collision = False
+        elif block_value == WATER_BLOCK:
+            print("water")
+            self.health -= 3
+            # Player die
+            collision = True
         elif block_value in ENEMY_SPAWN:
             print("new enemy")
             collision = False
@@ -546,6 +542,7 @@ class Player(Species):
                     self.current_move = 0
                     self.state = 0
                 if event.key == pygame.K_UP:
+                    # self.current_move = 0
                     self.jump.cancel = True
                     # Jump is canceled, new jump can only start when jump.is_running is set to False
                     self.state = 0
@@ -572,7 +569,7 @@ class Player(Species):
             gameDisplay.blit(end, (300, 300))
             pygame.display.update()
             play_music(5)
-            time.sleep(3)
+            time.sleep(2)
             running = False
         else:
             running = True
@@ -603,7 +600,6 @@ class Player(Species):
             # if the absolute position of player is even smaller than the relative one
             # Player hasn't run to the middle yet; beginning of the level
             max_x = self.player_rect.x
-
         if not self.jump.is_running:
             gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
                              (max_x, self.player_rect.y))
@@ -618,7 +614,6 @@ class Player(Species):
             else:
                 gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[2],
                                  (max_x, self.player_rect.y))
-
 
     def collect_drink(self, num):
         """
@@ -635,18 +630,23 @@ class Player(Species):
                  - Spieler Layout verändern
                  - Eigneschaften von Spieler beeinflussen
                  - Timer ablaufen lassen ??
+                 - todo high jump implementieren
         """
+        high_jump = Jump(0)  # for red item
+        red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, self)
+        green_item = Item("green", False, 5, green_skin, self.jump, 30, 0, self)
+
         if num == 56:
             print("Grün")
-            # self = green_item.item_init(self)
+            self = green_item.item_init(self)
         elif num == 57:
             print("rot")
-            # self = red_item.item_init(self)
+            self = red_item.item_init(self)
         elif num == 63:
             print("braun")
         elif num == 64:
             print("gelb")
-            # self = red_item.item_init(self)
+            self = red_item.item_init(self)
 
 
 class Item:
@@ -784,43 +784,55 @@ class Level:
         	date:
         	    - 27.05.2020
         	desc:
-        	    - das Level (2-Dimensionales Array) wird gezeichnet in Abhängigkeit von absoluter x-Position Player
-        	    - es wird berechnet welcher Bereich des Arrays auf dem Display gezeichnet werden muss
-        	    - je nach Inhalt im Array werden unterschiedliche Blöcke gezeichnet
-
+        	    - level (2-dimensional array) is drawn depending on absolute x-position from player
+        	    - it is calculated which area of the array must be drawn on the display
+        	    - different blocks are drawn depending on the content of the array
         	param:
-                - player.player_rect.x
-                - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
+                - player_pos: absolute horizontal position from player
+                - modified_level: can be different from the one you get in the "Constructor" because collected items disappear
             return:
                 - nothing
         """
         self.level_array = modified_level
-        anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
-        max_x_player = DISPLAYWIDTH / 2  # 500
-        if player_pos + PLAYERWIDTH > max_x_player:  # player bewegt sich nicht mehr weiter sondern Level abhängig von absoluten x-Wert von Player
-            rest = player_pos % BLOCKWIDTH  # rest = anzahl Pixel die Player über player_array ist
-            player_list = player_pos // BLOCKWIDTH  # in welcher Liste sich Player befindet
-            space = anz_listen // 2 - 1  # Anzahl Listen die vor und nach player_list angezigt werden auf Display
-            left_list = player_list - space  # Liste die ganz links im Display angezeigt wird
-            # print(rest, player_list, space, left_list)
-        else:  # player ist noch nicht in der Mitte von Spielfeld -> Feld verschiebt sich noch nicht bei Bewegung von Spieler
+        # get the new array, necessary if item is collected
+        lists = DISPLAYWIDTH // BLOCKWIDTH
+        # number of blocks that are possible on display vertical
+        elements = DISPLAYHEIGHT // BLOCKHEIGHT
+        # number of blocks that are possible on display horizontal
+        max_x_player = DISPLAYWIDTH / 2
+        # max. vertical position from player on display
+        if player_pos + PLAYERWIDTH > max_x_player:
+            # player does not move on, level depending on absolute vertical position from player
+            rest = player_pos % BLOCKWIDTH
+            # the number of pixels the player is over player_array
+            player_list = player_pos // BLOCKWIDTH
+            # in which list player is located
+            space = lists // 2 - 1
+            # number of lists that are shown before and after player_list on display
+            left_list = player_list - space
+            # list shown on the left edge of the display
+        else:
+            # player is not in the middle of the display -> field does not move when player moves
             left_list = 0
             rest = 0
-            player_list = player_pos // BLOCKWIDTH
         i = 0
-        # Blöcke werden auf Display gesetzt mit Hilfe begrenzter for-loop
-        for x in range(left_list, left_list + anz_listen + 1):
-            for y in range(0, DISPLAYHEIGHT // BLOCKHEIGHT):  # DISPLAYHEIGHT//BLOCKHEIGHT = Anzahl Blöcke in der Höhe
-                tile_height = 50
-                tile_width = 50
+        # for the correct x-position from the blocks
+
+        # blocks are set to display using limited for-loop
+        for x in range(left_list, left_list + lists + 1):
+            for y in range(0, elements):
                 tilesheet_columns = 7
-                value = self.level_array[x][y]  # value = id von richtigem Block
+                # number of columns in the the png "nature-platfromer-tilset"
+                value = self.level_array[x][y]
+                # value = id from Block
                 if value == 74:
                     continue
-                source_x = (value % tilesheet_columns) * tile_width
-                source_y = (value // tilesheet_columns) * tile_height
+                    # because block has the same colour like the background
+                source_x = (value % tilesheet_columns) * BLOCKWIDTH
+                source_y = (value // tilesheet_columns) * BLOCKHEIGHT
+                # source_x and source_y coordinate to get the right asset from the "tileset.png"
                 gameDisplay.blit(tileset, (i * BLOCKWIDTH - rest, y * BLOCKHEIGHT), (source_x, source_y, BLOCKWIDTH,
-                                                                                     BLOCKHEIGHT))  # Block wird auf Display gezeichnet, i um an richtiger x-Stelle auf Display zu zeichnen
+                                                                                     BLOCKHEIGHT))
             i += 1
 
 
@@ -950,6 +962,7 @@ def check_trans_button(button, image_list):
         if button.is_clicked == False:
             button.is_painted = color
 
+
 def play_music(game_state):
     if music_on:
         global music_menu
@@ -957,14 +970,16 @@ def play_music(game_state):
             if not music_menu:
                 music_menu = True
                 pygame.mixer.music.load("res/sound/menu_music.mp3")
-        elif game_state == 4 :
+        elif game_state == 4:
             pygame.mixer.music.load("res/sound/level_music.mp3")
             music_menu = False
-        elif game_state == 5: pygame.mixer.music.load("res/sound/lost_music.mp3")
+        elif game_state == 5:
+            pygame.mixer.music.load("res/sound/lost_music.mp3")
         pygame.mixer.music.play(-1)
     else:
         pygame.mixer.music.stop()
         music_menu = False
+
 
 def check_events(game_state):
     global music_on
@@ -988,8 +1003,8 @@ def check_events(game_state):
                         if check_box_list[i].is_clicked:
                             check_box_list[i].is_clicked = False
                             if i == 0:
-                               music_on= False
-                               pygame.mixer.music.stop()
+                                music_on = False
+                                pygame.mixer.music.stop()
                             draw_options_background()
                         else:
                             check_box_list[i].is_clicked = True
@@ -1014,7 +1029,6 @@ def check_events(game_state):
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
                     game_state = 4
-
     return game_state
 def credits_menu_loop(game_state):
     gameDisplay.blit(menu_navbar, (0, 0))
@@ -1126,20 +1140,25 @@ def check_create(enemy_status, player_pos):
         date:
             - 27.05.2020
         desc:
-            - es wird überprüft ob aufgrund von der Player Position ein Gegner erstellt werden muss
+            - it is checked if an enemy has to be created based on the player position
         param:
-            - player_pos: Distanz die Spieler zurückgelgt hat
+            - enemy_status: array where enemy status is defined
+            - player_pos: vertical position of player
         return:
-            - enemy
+            - enemy_status
         todo:
             - noch mehr gegner erstellen abh. von player_pos
     """
+    # 0 = not created, 1 = create, 2 = created, 3 = dead
     if player_pos >= 500 and enemy_status[0] == 0:
+        # if enemy is not created and player vertical pos above 500
         enemy_status[0] = 1
+        # manipulate arrray, so that gameloop can create enemy
     elif player_pos >= 1000 and enemy_status[1] == 0:
         enemy_status[1] = 1
 
     return enemy_status
+
 
 
 def game_loop(level_num):
@@ -1147,48 +1166,40 @@ def game_loop(level_num):
      	date:
      	    - 27.05.2020
      	desc:
-     	    - hier findet Spielablauf statt (es werde Eingaben entgegengenommen)
-     	    - auf Grund von Events(Tasteneingaben) Gegner und Level verändern
-     	    - Objekte erstellen: Player, (jump), Level, Gegner
+     	    - here the game takes place
+     	    - Create objects: player, jump, level, enemy
      	param:
-             - level_num: Level Nummer, Auswahl geschieht im Level-Menü
+             - level_num: selection is made in the level menu
          return:
-             - game_state: um in menü zurück zu springen
+             - game_state: to jump back to menu
      	todo:
-     	    - zurückspringen ins Menü
      	    - Button um Spiel abzubrechen
      	    - Gegener einbinden an den Stellen wo Coins sind (Gegenerlogik)
      	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
      	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
      	    - Highscore abspeichern, diesen im Menü anzeigen können (-> siehe helpful code, zum abspeichern in extra Datei)
-     	    - pygame.Quit() einbauen
     """
     running = True
+    # create objects
     std_jump = Jump(0)
-    # high_jump = Jump()  # für rotes Item
-
-    player = Player(pygame.Rect(BLOCKWIDTH, 0, PLAYERWIDTH, PLAYERHEIGHT), 0,
+    player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
                     red_skin, 0, 20, 2, level_num)
 
-    # red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player)
-    # green_item = Item("green", False, 5, green_skin, std_jump, 30, 0, player)
-
     level = Level(level_num)
-    enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 0 = nicht erstellt,  1 = erstellen, 2 = erstellt, 3 = tot,
+
+    enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # 0 = not created, 1 = create, 2 = created, 3 = dead
     time = Timer()
     play_music(4)
     while running:
+        # continuous loop until player dies or wins game
         running = player.handle_keys(running)
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
         """
-        # Gegner einbinden
-        #
-        #green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30, 700, 1, 1)
-        #sporn_x = 990
-        #
+        # sporn_x = 990
         enemy_status = check_create(enemy_status, player.player_rect.x)
         for i in enemy_status:
             for j in range(0, 4):
@@ -1211,7 +1222,6 @@ def game_loop(level_num):
         player.draw_self()
         running = player.dead()
         time.draw()  # for Time
-        running = player.dead()
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)

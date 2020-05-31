@@ -8,28 +8,25 @@ NORMAL_GROUND = (DISPLAYHEIGHT // 3) * 2
 level_length = 15
 y = DISPLAYHEIGHT // BLOCKHEIGHT  # 12
 x = (DISPLAYWIDTH // BLOCKWIDTH) * level_length  # 300
-print(x)
-# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
-# Array mit Nullen befüllen
 level_array = [[0 for i in range(y)] for j in range(x)]
-
+# fill array with zeros
 
 def get_level_array(level):
     """
      	date:
      	    - 27.05.2020
      	desc:
-     	    - es wird Level erstellt
+     	    - level is created
+     	    - depending on the id, block has a different look and other function
+     	    - level_array is a list, in this list are x*level_lenght lists, each with y elements
      	param:
-             - level_num: Level Nummer, Auswahl geschieht im Menü
+             - level_num: selection is made in the menu
          return:
              - level_array
-     	todo:
-     	    - display constants nicht neu erstellen
     """
     if level == 1:
         # einzelne Werte in Array eingeben
-        # [Liste][Element]
+        # [list][element]
         #    0   1   2   3   4   5   6   7   8   9  10  11
         level_array = [
             [74, 74, 53, 60, 67, 74, 74, 74, 74, 53, 1, 8],  # 0
@@ -46,7 +43,6 @@ def get_level_array(level):
             [74, 74, 53, 60, 67, 74, 74, 74, 74, 53, 1, 8],  # 11
             [74, 74, 53, 60, 67, 74, 74, 74, 74, 53, 1, 8],  # 12
             [74, 74, 53, 60, 67, 74, 74, 74, 74, 53, 2, 9],  # 13
-            # 0   1   2   3   4   5   6   7   8   9  10  11
             [74, 74, 53, 60, 67, 74, 53, 67, 74, 53, 74, 40],  # 14
             [74, 74, 74, 74, 74, 74, 53, 67, 74, 53, 41, 40],  # 15
             [74, 74, 74, 74, 74, 74, 53, 67, 74, 53, 34, 40],  # 16
@@ -61,7 +57,6 @@ def get_level_array(level):
             [74, 74, 74, 53, 67, 74, 74, 22, 19, 26, 1, 8],  # 25
             [74, 74, 74, 53, 67, 74, 74, 74, 74, 53, 1, 8],  # 26
             [74, 74, 74, 53, 67, 74, 74, 74, 74, 53, 2, 9],  # 27
-
             [74, 74, 74, 53, 67, 74, 74, 74, 74, 53, 74, 40],  # 28
             [74, 74, 74, 53, 67, 74, 74, 74, 74, 53, 41, 40],  # 29
             [74, 74, 74, 53, 67, 74, 74, 74, 74, 53, 41, 40],  # 30
@@ -335,9 +330,7 @@ def get_level_array(level):
             [74, 53, 67, 74, 74, 23, 30, 30, 30, 37, 1, 8],  # 297
             [74, 74, 74, 74, 74, 74, 74, 74, 74, 53, 1, 8],  # 298
             [74, 74, 74, 74, 74, 74, 74, 74, 74, 53, 1, 8],  # 299
-
         ]
-
     else:
-        print("Level noch nicht erstellt")
+        print("Level not yet created")
     return level_array
