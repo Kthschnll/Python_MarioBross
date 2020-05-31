@@ -359,90 +359,83 @@ class Player(Species):
         self.jump = jump
         self.level_array = get_level_array(level_num)
         self.reached_end = False
+
     def move(self):
         """
             date:
                 - 27.05.2020
             desc:
-                - in Abhängigkeit von der Bewegung die Player (aufgrund von Tastedruck) macht und seinem speed wird sein neue y und seine absolute Postion x ermittel
+                - depending on the movement the player want to make (due to keystroke) his new horizontal and vertical Positon is calculated
+                - calls the method collision() which checks if the new position is allowed
+                - depending on the return value of the method collision() the player is moved or not
             param:
                 - nothing
             return:
                 - nothing
             todo:
-                - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
-                - todo Schleifen zählung nicht +1 sondern effizienter
+                - Loop count not +1 but more efficient
         """
-
-        # Bewegung nach rechts
+        # Player want to move to the right
         if self.current_move == 1:
             for i in range(1, self.speed + 1):
+                # count i up, maximal speed if there is no collision
                 self.player_rect.x += 1
-                # Koordinaten Werte von rechts oben Spieler
-                x_pos_player = self.player_rect.x + PLAYERWIDTH
-                y_pos_player = self.player_rect.y + 1 # damit Player durch Lücken durchpasst
-                collide1 = self.collide(x_pos_player, y_pos_player)
-                print("1", collide1)
-                if collide1:
+                if self.collide(self.player_rect.x + PLAYERWIDTH, self.player_rect.y + 1) or self.collide(
+                        self.player_rect.x + PLAYERWIDTH, self.player_rect.y + PLAYERHEIGHT):
+                    # coordinate values from top right player or bottom right have collision
+                    # - 1 to make player fit through gaps and
                     self.player_rect.x -= 1
+                    # change players horizontal position back
                     break
-                else:
-                    # Koordinaten Werte von rechts unten Spieler
-                    x_pos_player = self.player_rect.x + PLAYERWIDTH
-                    y_pos_player = self.player_rect.y + PLAYERHEIGHT
-                    collide2 = self.collide(x_pos_player, y_pos_player)
-                    print("2:", collide2)
-                    if collide2:
-                        self.player_rect.x -= 1
-                        break
 
-        # Bewegung nach links
+        # Player want to move to the left
         elif self.current_move == 2:
             for i in range(1, self.speed + 1):
+                # count i up, maximal speed if there is no collision
                 self.player_rect.x -= 1
-                # Koordinaten Werte von links oben Spieler
-                x_pos_player = self.player_rect.x
-                y_pos_player = self.player_rect.y
-                if self.player_rect.x <= 0:  # Linkes Bildschirm Ende
+                if self.player_rect.x <= 0:
+                    # Left screen end is reached
                     self.player_rect.x = 0
-                collide1 = self.collide(x_pos_player, y_pos_player)
-                if collide1:
+                if self.collide(self.player_rect.x, self.player_rect.y) or self.collide(self.player_rect.x,
+                                                                                        self.player_rect.y + PLAYERHEIGHT):
+                    # coordinate values from top left player or bottom left have collision
                     self.player_rect.x += 1
+                    # change players horizontal position back
                     break
-                else:
-                    # Koordinaten Werte von links unten Spieler
-                    x_pos_player = self.player_rect.x
-                    y_pos_player = self.player_rect.y + PLAYERHEIGHT
-                    collide2 = self.collide(x_pos_player, y_pos_player)
-                    if collide2:
-                        self.player_rect.x += 1
-                        break
 
-        # Gegner springt nach oben
-        if self.jump.is_running == True and self.jump.cancel == False:  # Sprung wird noch ausgeführt
+        # Player want to jump up
+        if self.jump.is_running and not self.jump.cancel:
+            # jump is still executed
             self.jump.calc_new_y(self)
 
-        # Gravitation, wenn kein Sprung ausgeführt wird, überprüfen ob Untergrund unter dem Player
-        # Koordinaten Werte von links unten Spieler                                        # Koordinaten Werte von rechts unten Spieler
-        elif self.collide(self.player_rect.x + PLAYERWIDTH // 2,
-                          self.player_rect.y + PLAYERHEIGHT) == False:  # and self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT) == False: # keine Kollision mit Untergrund
-            for i in range(1, self.jump.size + 1):  # zähle y solange hoch bis Boden erreicht ist
+        # Gravity -> if no jump is performed, check if underground under the player
+        elif not self.collide(self.player_rect.x + PLAYERWIDTH, self.player_rect.y + PLAYERHEIGHT + 1) and not self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT + 1):
+            # Coordinate values from bottom left player and bottom right player have no collision
+            # -> no collision with level blocks when player moves one place down
+            for i in range(1, self.jump.size + 1):
+                # count y up, maximal jumpsize if bottom is not reached
+                # proof if bottom is reached after every change of players vertical position
                 self.player_rect.y += 1
-                if self.player_rect.y + PLAYERHEIGHT == DISPLAYHEIGHT:  # Spieler ist mit Beinen am Boden von Wasser angekommen
-                    self.health -= 2  # Leben wird abgezogen
+                if self.player_rect.y + PLAYERHEIGHT == DISPLAYHEIGHT:
+                    # Player's legs have reached the bottom of water
+                    self.health -= 1
+                    # Life is deducted
                     break
-                # Koordinaten Werte von links unten Spieler
-                collide1 = self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT)
-                if collide1:
-                    self.jump.is_running = False  # es kann neuer Sprung beginnen
+
+                if self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT) or self.collide(
+                        self.player_rect.x, self.player_rect.y + PLAYERHEIGHT):
+                    # Coordinate values from bottom left player and coordinate values from bottom right player
+                    # collision with background when player moves one place down
+                    self.jump.is_running = False
+                    # new jump can begin, because player reached the ground
                     self.player_rect.y -= 1
+                    # change players vertical position back
                     break
-                else:  # Koordinaten Werte von rechts unten Spieler
-                    collide2 = self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT)
-                    if collide2:
-                        self.jump.is_running = False  # es kann neuer Sprung beginnen
-                        self.player_rect.y -= 1
-                        break
+
+        # Player is on the ground
+        else:
+            self.jump.is_running = False
+            # new jump can begin, because player already reached the ground
 
     def collide(self, x_pos_player, y_pos_player):
         """
@@ -452,6 +445,8 @@ class Player(Species):
                  - es wird überprüft ob Player und Gegner sich berühren
                  - wenn berührung stattfindet: Player von oben auf Gegner -> Gegner health - 1
                  - Gegner von der Seite auf Player -> Player health - 1
+                 -  - detect collisions with blocks from level -> movement is stopped
+                 - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
              param:
                  - die relevante x,y Position von dem Player
              return:
@@ -483,7 +478,7 @@ class Player(Species):
             print("new enemy")
             collision = False
         elif block_value == END_BLOCK:
-            self.reached_end = True # siehe Methode dead() für weiteres
+            self.reached_end = True  # siehe Methode dead() für weiteres
             collision = True
         else:
             collision = True
@@ -632,7 +627,7 @@ class Player(Species):
         """
         if num == 56:
             print("Grün")
-            #self = green_item.item_init(self)
+            # self = green_item.item_init(self)
         elif num == 57:
             print("rot")
             # self = red_item.item_init(self)
@@ -640,7 +635,7 @@ class Player(Species):
             print("braun")
         elif num == 64:
             print("gelb")
-            #self = red_item.item_init(self)
+            # self = red_item.item_init(self)
 
 
 class Item:
@@ -766,6 +761,7 @@ class Background:
             else:
                 self.x = -sporn_x
         """
+
 
 class Level:
     def __init__(self, num):
@@ -1055,8 +1051,8 @@ def menu_score_loop(game_state):
 
     while game_state == 2:
         draw_level_background()
-        #green_enemy1.draw_self()
-        #player1.draw_self()
+        # green_enemy1.draw_self()
+        # player1.draw_self()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
@@ -1127,14 +1123,14 @@ def game_loop(level_num):
     """
     running = True
     std_jump = Jump()
-    #high_jump = Jump()  # für rotes Item
+    # high_jump = Jump()  # für rotes Item
 
     player = Player(pygame.Rect(BLOCKWIDTH, 0, PLAYERWIDTH, PLAYERHEIGHT), 0,
-                     move_list_player, std_jump,
-                     red_skin, 0, 20, 2, level_num)
+                    move_list_player, std_jump,
+                    red_skin, 0, 20, 2, level_num)
 
-    #red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player)
-    #green_item = Item("green", False, 5, green_skin, std_jump, 30, 0, player)
+    # red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player)
+    # green_item = Item("green", False, 5, green_skin, std_jump, 30, 0, player)
 
     level = Level(level_num)
     enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 0 = nicht erstellt,  1 = erstellen, 2 = erstellt, 3 = tot,
