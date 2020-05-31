@@ -45,7 +45,9 @@ POWERUP_BLOCK = [56, 57, 63, 64]
 RARE_BLOCK = [45, 46, 47, 48]
 END_BLOCK = 11  # Ende von Spiel
 ENEMY_SPAWN = [54, 55, 61, 62]
-# nonpassable = alle Anderen
+NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 2024, 25, 26, 27, 31, 32, 33, 34,
+                      41, 42, 43, 44]
+
 
 # menu grafics
 resources_path = "res/menu/"
@@ -290,7 +292,7 @@ class Timer:
             date:
                 - 27.05.2020
             desc:
-                - Timer wird im richtigen Format auf Display gezeichnet
+                - timer is drawn in the correct format on the display
             param:
                 - nothing
             return:
@@ -299,47 +301,60 @@ class Timer:
         end = time.time()
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
-        # print("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
         gameDisplay.blit(timer, (0, 0))
 
 
 class Jump:
-    def __init__(self):
-        self.jump_height = BLOCKHEIGHT * 2 + 10  # ist die gesamte Sprunghöhe
-        self.cancel = False  # gibt an ob der Spieler noch den Sprung ausführt, # wenn cancle = True ist entweder ein Hinderniss im Weg oder User drück nicht mehr die "Springtaste"
-        self.size = 6  # nach jedem Aufruf von calc_new_y wird der Spieler um diese Anzahl von Pixeln hoch springen
-        self.is_running = False  # wenn es auf True geht kann kein neuer Sprung angenommen werden # todo: wenn Speiler Bden erreicht wieder auf False setzen
+    def __init__(self, jump_count):
+        self.jump_count = jump_count
+        self.jump_height = BLOCKHEIGHT * 2 + 10
+        # max. jump height
+        self.cancel = False
+        # indicates if the player still performs the jump,
+        # if cancle = True: either an obstacle in the way or user does not press the "Jump" button anymore
+        self.size = 6
+        # after each call of calc_new_y the player will jump up by this number of pixels
+        self.is_running = False
+        # when it is True new jump is not accepted
 
     def jump_init(self, speed):
-        self.is_running = True  # es kann kein neuer Sprung ausgeführt werden
-        self.cancel = False  # Sprung ist noch nicht zuende
+        self.is_running = True
+        self.cancel = False
+        # jump is not at the end
         self.jump_height = BLOCKHEIGHT * 2 + 10
-        self.size = speed  # damit wird springen auch schneller wenn der Spieler mehr speed hat
+        self.size = speed
+        # jump faster if the player has more speed
 
     def calc_new_y(self, player):
-        self.jump_height -= self.size  # Gesamte Sprunghöhe - Anz. die Player nach diesem Aufruf hoch springt
+        """
+            date:
+                - 27.05.2020
+            desc:
+                - is calculating the new vertical position of the player if he jumps
+            param:
+                - player: to get vertical position of the player and to execute the method collision()
+            return:
+                - nothing
+            todo:
+                - Loop count not +1, to do it more more efficient
+        """
+        self.jump_height -= self.size
+        # max. possible jump height - Number of pixels player is jumping
         if self.jump_height >= 0:
-            for x in range(1, self.size + 1):  # es wird überprüft ob Kollision mit Blöcken stattfinden
+            # player can still jump
+            for x in range(1, self.size + 1):
                 player.player_rect.y -= 1
-                # Koordinaten Werte von links oben Spieler
-                x_pos_player = player.player_rect.x
-                y_pos_player = player.player_rect.y
-                collide1 = player.collide(x_pos_player, y_pos_player)
-                if collide1 == True:
+                if player.collide(player.player_rect.x, player.player_rect.y) or player.collide(player.player_rect.x + PLAYERWIDTH, player.player_rect.y):
+                    # coordinate values from top left player or top right have collision
                     player.player_rect.y += 1
-                    self.cancel = True  # Sprung wird beendet, da Spieler am links am Kopf auf Block trifft
-                else:
-                    # Koordinaten Werte von rechts oben Spieler
-                    x_pos_player = player.player_rect.x + PLAYERWIDTH
-                    y_pos_player = player.player_rect.y
-                    collide2 = player.collide(x_pos_player, y_pos_player)
-                    if collide2 == True:
-                        player.player_rect.y += 1
-                        self.cancel = True  # Sprung wird beendet, da Spieler am rechts am Kopf auf Block trifft
-
+                    # change players vertical position back
+                    self.cancel = True
+                    # Jump is finished because player is hitting block with his head
+                    break
         else:
-            self.cancel = True  # Sprung wird beendet, da Spieler die max. Sprunghöhe erreicht
+            self.cancel = True
+            # Jump is finished, because player reaches the max. jump height
 
 
 class Species:
@@ -373,7 +388,7 @@ class Player(Species):
             return:
                 - nothing
             todo:
-                - Loop count not +1 but more efficient
+                - Loop count not +1, to do it more more efficient
         """
         # Player want to move to the right
         if self.current_move == 1:
@@ -409,7 +424,9 @@ class Player(Species):
             self.jump.calc_new_y(self)
 
         # Gravity -> if no jump is performed, check if underground under the player
-        elif not self.collide(self.player_rect.x + PLAYERWIDTH, self.player_rect.y + PLAYERHEIGHT + 1) and not self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT + 1):
+        elif not self.collide(self.player_rect.x + PLAYERWIDTH,
+                              self.player_rect.y + PLAYERHEIGHT + 1) and not self.collide(self.player_rect.x,
+                                                                                          self.player_rect.y + PLAYERHEIGHT + 1):
             # Coordinate values from bottom left player and bottom right player have no collision
             # -> no collision with level blocks when player moves one place down
             for i in range(1, self.jump.size + 1):
@@ -442,34 +459,33 @@ class Player(Species):
              date:
                  - 27.05.2020
              desc:
-                 - es wird überprüft ob Player und Gegner sich berühren
-                 - wenn berührung stattfindet: Player von oben auf Gegner -> Gegner health - 1
-                 - Gegner von der Seite auf Player -> Player health - 1
-                 -  - detect collisions with blocks from level -> movement is stopped
-                 - Collisionen mit Blöcken und Gegenern aus Level erkennen -> Bewegung wird gestoppt
+                 - detect collisions from player with blocks from level
              param:
-                 - die relevante x,y Position von dem Player
+                 - x_pos_player: relevant horizontal position of the player
+                 - y_pos_player: relevant vertical position of the player
              return:
-                 - true wenn Gegner gehittet wird
+                 - true:  if there is a collisions with blocks
+                 - false: no collision
              todo:
-                 - ganze Funktion -> Gegner oder Spiler Leben abziehen, Mehtode in Level sinnvoll
                  - Bei end block ins Menü zurück oder Animation abspielen und Name eintragen wenn Highscore unter den besten 10
-                 - Funktion bei Block 40 (Wasser)
                  - eventuell Reihenfolge ändern(effizienter, statt else alle nicht passierbaren Blöcke in Array und an Anfang
         """
-
-        player_list = (x_pos_player // BLOCKWIDTH)  # in welcher Liste sich relevante Player x-Position befindet
-        player_element = y_pos_player // BLOCKHEIGHT  # in welchem Element sich relevante Player y-Position befindet
+        player_list = (x_pos_player // BLOCKWIDTH)
+        # which list of the 2-dim array is relevant
+        player_element = y_pos_player // BLOCKHEIGHT
+        # which element of the list is relevant
         block_value = self.level_array[player_list][player_element]
-        # print(pos_player)
-        # print(player_list, player_element, block_value)
+        # get the value of the block
 
-        # je nach Blockart gibt es eine/keine Kollision
-        if block_value in DECORATION_BLOCK:
+        # depending on block type there is a collision or not
+        if block_value in NOT_PASSABLE_BLOCK:
+            collision = True
+        elif block_value in DECORATION_BLOCK:
             collision = False
         elif block_value in POWERUP_BLOCK:
             self.collect_drink(block_value)
-            self.level_array[player_list][player_element] = 74  # getränk wird gelöscht
+            self.level_array[player_list][player_element] = 74
+            # drink is deleted
             collision = False
         elif block_value in RARE_BLOCK:
             print("found rare item")
@@ -478,13 +494,24 @@ class Player(Species):
             print("new enemy")
             collision = False
         elif block_value == END_BLOCK:
-            self.reached_end = True  # siehe Methode dead() für weiteres
-            collision = True
-        else:
+            self.reached_end = True
+            # see method dead() for more
             collision = True
         return collision
 
     def handle_keys(self, running):
+        """
+             date:
+                 - 27.05.2020
+             desc:
+                 - handle input from User while game is running
+             param:
+                 - running: game_loop status
+             return:
+                 - nothing
+            todo:
+                - pg.Quit
+        """
         for event in pygame.event.get():
             """
             if event.type == pg.Quit:
@@ -502,36 +529,41 @@ class Player(Species):
                         self.current_move = 2
                         self.state = 0
                     if event.key == pygame.K_UP:
-                        if self.jump.is_running == False:  # wenn gerade noch kein Sprung ausgeführt wird
+                        if self.jump.is_running == False:
+                            # if no jump is performed just yet
                             self.state = 0
-                            self.jump.jump_init(self.speed // 2)  # is_running = True , cancel = False
+                            self.jump.jump_init(self.speed // 2)
+                            # set: is_running = True , cancel = False
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
                     self.current_move = 0
                     self.state = 0
                 if event.key == pygame.K_UP:
-                    self.jump.cancel = True  # Sprung wird gecancelt, neuer Sprung kann erst anfangen wenn jump.is_running auf False gesetzt wird
+                    self.jump.cancel = True
+                    # Jump is canceled, new jump can only start when jump.is_running is set to False
                     self.state = 0
-        return running
+            return running
 
     def dead(self):
         """
             date:
                 - 27.05.2020
             desc:
-                - wenn Spieler keine Leben mehr hat, ist Spiel zu Ende
+                - checks the number of lives the player has left
+                - check if player has reached the end
             param:
-                - anzahl Leben die Spieler verliert
+                - nothing
             return:
-                - running
+                - running: running state of the function game_loop()
         """
-
         if self.health <= 0:
-            font = pygame.font.SysFont(None, 100)  # create Font
+            # player has no lives left
+            # create Font and put some output on the screen
+            font = pygame.font.SysFont(None, 100)
             gameDisplay.fill(BLACK)
-            ende = font.render(("You Lost"), True, WHITE)
-            gameDisplay.blit(ende, (300, 300))
-            pygame.display.update()  # Display updaten
+            end = font.render(("You Lost"), True, WHITE)
+            gameDisplay.blit(end, (300, 300))
+            pygame.display.update()
             time.sleep(3)
             running = False
         else:
@@ -548,66 +580,37 @@ class Player(Species):
             date:
                 - 27.05.2020
             desc:
-                - in Abhängigkeit von der Bewegung die Player (aufgrund von Tastedruck) macht wird sein neues Bild an der richtigen Position gezeichnet
+                - depending on the movement the player makes he is drawn
             param:
                 - nothing
             return:
                 - nothing
+            todo:
+                - jump mit einbauen
+                - comments
         """
-        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH  # relative Position von Player, damit Player in der Mitte des Display erscheint
-        if self.player_rect.x < max_x:  # wenn die absolute Position von Player noch kleiner wie die relative ist
-            max_x = self.player_rect.x  # Player ist noch nicht bis zur Mitte gelaufen; Anfang vom Level
+        max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH
+        # relative position of player, so that player appears in the middle of the display
+        if self.player_rect.x < max_x:
+            # if the absolute position of player is even smaller than the relative one
+            # Player hasn't run to the middle yet; beginning of the level
+            max_x = self.player_rect.x
 
-        """
-        def __init__(self, is_jumping, next_y, jump_count, jump_size, cancle):
-             std_jump = Jump(False,       0,          0,         6, False)
-
-                    if event.key == pygame.K_UP:
-                        if self.jump.is_jumping = False:
-                            self.state = 0
-                            self.jump.jump_init()
-
-                if event.key == pygame.K_UP:
-                    if self.jump.is_jumping = True:
-                        if self.jump.cancle = False:
-                            self.jump.cancle = True
-                            self.state = 0
-
-
-    def jump_init(self):
-        self.is_jumping = True
-        self.cancle = False
-        self.jump_count = self.jump_size
-
-    def calc_new_y(self):
-        self.next_y -= self.jump_count * abs(self.jump_count)
-        if self.jump_count == -self.jump_size:
-            self.is_jumping = False
-        if self.cancle and self.jump_count > 0:
-            self.jump_count = -self.jump_count
+        if not self.jump.is_running:
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
+                             (max_x, self.player_rect.y))
+            if self.state < (len(getattr(self.skin, self.move_list[self.current_move])) - 1):
+                self.state += 1  # damit die nächste Animation geladen wird
+            else:
+                self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
         else:
-            self.jump_count -= 1
-        return self.next_y
-
-
-        """
-
-        gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
-                         (max_x, self.player_rect.y))
-        if self.state < (len(getattr(self.skin, self.move_list[self.current_move])) - 1):
-            self.state += 1  # damit die nächste Animation geladen wird
-        else:
-            self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
-        """
-        else:  # es wird gesprungen
-            #self.player_rect.y = self.jump.calc_new_y(self)  # todo: in move methode
-            if self.jump2.jump_count >= 0:
+            if self.jump.jump_count >= 0:
                 gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[1],
                                  (max_x, self.player_rect.y))
             else:
                 gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[2],
                                  (max_x, self.player_rect.y))
-        """
+
 
     def collect_drink(self, num):
         """
@@ -1122,7 +1125,7 @@ def game_loop(level_num):
      	    - pygame.Quit() einbauen
     """
     running = True
-    std_jump = Jump()
+    std_jump = Jump(0)
     # high_jump = Jump()  # für rotes Item
 
     player = Player(pygame.Rect(BLOCKWIDTH, 0, PLAYERWIDTH, PLAYERHEIGHT), 0,
