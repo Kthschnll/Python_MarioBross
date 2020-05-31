@@ -628,7 +628,12 @@ class Player(Species):
                  - Spieler Layout verändern
                  - Eigneschaften von Spieler beeinflussen
                  - Timer ablaufen lassen ??
+                 - todo high jump implementieren
         """
+        high_jump = Jump(0)  # for red item
+        red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, self)
+        green_item = Item("green", False, 5, green_skin, self.jump, 30, 0, self)
+
         if num == 56:
             print("Grün")
             self = green_item.item_init(self)
@@ -1125,6 +1130,7 @@ def check_create(enemy_status, player_pos):
     return enemy_status
 
 
+
 def game_loop(level_num):
     """
      	date:
@@ -1146,12 +1152,10 @@ def game_loop(level_num):
     running = True
     # create objects
     std_jump = Jump(0)
-    # high_jump = Jump()  # für rotes Item
     player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
                     red_skin, 0, 20, 2, level_num)
-    # red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player)
-    # green_item = Item("green", False, 5, green_skin, std_jump, 30, 0, player)
+
     level = Level(level_num)
 
     enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1188,7 +1192,6 @@ def game_loop(level_num):
         player.draw_self()
         running = player.dead()
         time.draw()  # for Time
-        running = player.dead()
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)
