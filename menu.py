@@ -34,20 +34,19 @@ BLOCKHEIGHT = 50
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
 
-NORMAL_GROUND = DISPLAYHEIGHT - 2 * BLOCKHEIGHT  # normalground ist die kleinste Höhe auf der sich Spieler befindet #todo sollte unnötig werden, wenn player Gravitation hat und von oben auf Displayer föllt
 # level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
 PLAYERHEIGHT = 50
 PLAYERWIDTH = 40
 
 # define_blocks
-DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 40, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
+DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
 POWERUP_BLOCK = [56, 57, 63, 64]
 RARE_BLOCK = [45, 46, 47, 48]
 END_BLOCK = 11  # Ende von Spiel
+WATER_BLOCK = 40
 ENEMY_SPAWN = [54, 55, 61, 62]
-NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 2024, 25, 26, 27, 31, 32, 33, 34,
+NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 31, 32, 33, 34,
                       41, 42, 43, 44]
-
 
 # menu grafics
 resources_path = "res/menu/"
@@ -350,7 +349,8 @@ class Jump:
             # player can still jump
             for x in range(1, self.size + 1):
                 player.player_rect.y -= 1
-                if player.collide(player.player_rect.x, player.player_rect.y) or player.collide(player.player_rect.x + PLAYERWIDTH, player.player_rect.y):
+                if player.collide(player.player_rect.x, player.player_rect.y) or player.collide(
+                        player.player_rect.x + PLAYERWIDTH, player.player_rect.y):
                     # coordinate values from top left player or top right have collision
                     player.player_rect.y += 1
                     # change players vertical position back
@@ -429,21 +429,13 @@ class Player(Species):
             self.jump.calc_new_y(self)
 
         # Gravity -> if no jump is performed, check if underground under the player
-        elif not self.collide(self.player_rect.x + PLAYERWIDTH,
-                              self.player_rect.y + PLAYERHEIGHT + 1) and not self.collide(self.player_rect.x,
-                                                                                          self.player_rect.y + PLAYERHEIGHT + 1):
-            # Coordinate values from bottom left player and bottom right player have no collision
+        elif self.collide(self.player_rect.x + PLAYERWIDTH // 2, self.player_rect.y + PLAYERHEIGHT + 1) == False:
+            # Coordinate values from bottom middle player have no collision
             # -> no collision with level blocks when player moves one place down
             for i in range(1, self.jump.size + 1):
-                # count y up, maximal jumpsize if bottom is not reached
+                # count y up, maximal jump.size if bottom is not reached
                 # proof if bottom is reached after every change of players vertical position
                 self.player_rect.y += 1
-                if self.player_rect.y + PLAYERHEIGHT == DISPLAYHEIGHT:
-                    # Player's legs have reached the bottom of water
-                    self.health -= 1
-                    # Life is deducted
-                    break
-
                 if self.collide(self.player_rect.x, self.player_rect.y + PLAYERHEIGHT) or self.collide(
                         self.player_rect.x, self.player_rect.y + PLAYERHEIGHT):
                     # Coordinate values from bottom left player and coordinate values from bottom right player
@@ -495,6 +487,11 @@ class Player(Species):
         elif block_value in RARE_BLOCK:
             print("found rare item")
             collision = False
+        elif block_value == WATER_BLOCK:
+            print("water")
+            self.health -= 3
+            # Player die
+            collision = True
         elif block_value in ENEMY_SPAWN:
             print("new enemy")
             collision = False
@@ -570,7 +567,7 @@ class Player(Species):
             gameDisplay.blit(end, (300, 300))
             pygame.display.update()
             play_music(5)
-            time.sleep(3)
+            time.sleep(2)
             running = False
         else:
             running = True
@@ -601,7 +598,6 @@ class Player(Species):
             # if the absolute position of player is even smaller than the relative one
             # Player hasn't run to the middle yet; beginning of the level
             max_x = self.player_rect.x
-
         if not self.jump.is_running:
             gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
                              (max_x, self.player_rect.y))
@@ -616,7 +612,6 @@ class Player(Species):
             else:
                 gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[2],
                                  (max_x, self.player_rect.y))
-
 
     def collect_drink(self, num):
         """
@@ -791,6 +786,8 @@ class Level:
                 - modified_level: wird von Spieler übergeben da dort bei Kollision mit zum Beispiel tränken das Level modifiziert wird
             return:
                 - nothing
+            todo:
+                - comments
         """
         self.level_array = modified_level
         anz_listen = DISPLAYWIDTH // BLOCKWIDTH  # Anzahl Blöcke/Listen die auf Diyplay möglich sind
@@ -1012,7 +1009,6 @@ def check_events(game_state):
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
                     game_state = 4
-
     return game_state
 
 
@@ -1096,16 +1092,20 @@ def check_create(enemy_status, player_pos):
         date:
             - 27.05.2020
         desc:
-            - es wird überprüft ob aufgrund von der Player Position ein Gegner erstellt werden muss
+            - it is checked if an enemy has to be created based on the player position
         param:
-            - player_pos: Distanz die Spieler zurückgelgt hat
+            - enemy_status: array where enemy status is defined
+            - player_pos: vertical position of player
         return:
-            - enemy
+            - enemy_status
         todo:
             - noch mehr gegner erstellen abh. von player_pos
     """
+    # 0 = not created, 1 = create, 2 = created, 3 = dead
     if player_pos >= 500 and enemy_status[0] == 0:
+        # if enemy is not created and player vertical pos above 500
         enemy_status[0] = 1
+        # manipulate arrray, so that gameloop can create enemy
     elif player_pos >= 1000 and enemy_status[1] == 0:
         enemy_status[1] = 1
 
@@ -1117,48 +1117,42 @@ def game_loop(level_num):
      	date:
      	    - 27.05.2020
      	desc:
-     	    - hier findet Spielablauf statt (es werde Eingaben entgegengenommen)
-     	    - auf Grund von Events(Tasteneingaben) Gegner und Level verändern
-     	    - Objekte erstellen: Player, (jump), Level, Gegner
+     	    - here the game takes place
+     	    - Create objects: player, jump, level, enemy
      	param:
-             - level_num: Level Nummer, Auswahl geschieht im Level-Menü
+             - level_num: selection is made in the level menu
          return:
-             - game_state: um in menü zurück zu springen
+             - game_state: to jump back to menu
      	todo:
-     	    - zurückspringen ins Menü
      	    - Button um Spiel abzubrechen
      	    - Gegener einbinden an den Stellen wo Coins sind (Gegenerlogik)
      	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
      	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
      	    - Highscore abspeichern, diesen im Menü anzeigen können (-> siehe helpful code, zum abspeichern in extra Datei)
-     	    - pygame.Quit() einbauen
     """
     running = True
+    # create objects
     std_jump = Jump(0)
     # high_jump = Jump()  # für rotes Item
-
-    player = Player(pygame.Rect(BLOCKWIDTH, 0, PLAYERWIDTH, PLAYERHEIGHT), 0,
+    player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
                     red_skin, 0, 20, 2, level_num)
-
     # red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, player)
     # green_item = Item("green", False, 5, green_skin, std_jump, 30, 0, player)
-
     level = Level(level_num)
-    enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 0 = nicht erstellt,  1 = erstellen, 2 = erstellt, 3 = tot,
+
+    enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # 0 = not created, 1 = create, 2 = created, 3 = dead
     time = Timer()
     play_music(4)
     while running:
+        # continuous loop until player dies or wins game
         running = player.handle_keys(running)
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
         """
-        # Gegner einbinden
-        #
-        #green_enemy1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30, 700, 1, 1)
-        #sporn_x = 990
-        #
+        # sporn_x = 990
         enemy_status = check_create(enemy_status, player.player_rect.x)
         for i in enemy_status:
             for j in range(0, 4):
