@@ -280,3 +280,35 @@ std_jump = Jump(False, 400, 0, 6,
                 False)  # 400 steht für den basis X-Wert von Spieler...wenn der Spieler auf einen Block springt muss hier ein neuer wert eingetragen werden
 high_jump = Jump(False, 400, 0, 8, False)  # für rotes Item
 
+
+
+class Item:
+    def __init__(self, color, collected, duration, skin, jump, speed, health, player_copy):
+        self.color = color
+        self.duration = duration  # in sec
+        self.skin = skin
+        self.jump = jump
+        self.speed = speed
+        self.player_copy = player_copy
+        self.health = health
+        self.collected = collected
+
+    def item_init(self, player):
+        if not self.collected:
+            self.player_copy = player
+            player.skin = self.skin
+            player.jump = self.jump
+            player.speed = self.speed
+            player.health += self.health
+            self.collected = True
+            self.start_time()
+        return player
+
+    def start_time(self):
+        time1 = Timer()
+
+    def time_is_up(self, player):
+        player.skin = self.player_copy.skin
+        player.jump = self.player_copy.jump
+        player.speed = self.player_copy.speed
+        return player
