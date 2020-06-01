@@ -52,7 +52,7 @@ NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 
 resources_path = "res/menu/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
-resources_path_credits= "res/Credits/"
+resources_path_credits = "res/Credits/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -193,7 +193,7 @@ for i in range(5):
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
 
-#load credit images
+# load credit images
 frame_traxx = pygame.transform.scale(pygame.image.load(resources_path_credits + "FrameTraxx.jpg"), (130, 130))
 jungle_logo = pygame.transform.scale(pygame.image.load(resources_path_credits + "Jungle_Pack.PNG"), (300, 120))
 jungle_sample = pygame.transform.scale(pygame.image.load(resources_path_credits + "Jungle_P.PNG"), (130, 130))
@@ -207,7 +207,7 @@ music_menu = False
 music_list = ["res/sound/level_music.mp3", "res/sound/menu_music.mp3"]
 # colors
 WHITE = (255, 255, 255)
-DARK_BLUE =(0,38,56)
+DARK_BLUE = (0, 38, 56)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 153, 220)
@@ -267,8 +267,8 @@ check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, True, cb_img_list[
 check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, True, cb_img_list[0])
 play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_1_img)
 credits_button = Button("Credits", pygame.Rect(380, 5, 90, 30), 10)
-how_to_play_button = Button("Help",pygame.Rect(286, 5, 90, 30), 9)
-menu_button_list = [home_button, level_button, scores_button,how_to_play_button,credits_button]
+how_to_play_button = Button("Help", pygame.Rect(286, 5, 90, 30), 9)
+menu_button_list = [home_button, level_button, scores_button, how_to_play_button, credits_button]
 check_box_list = [check_box_music, check_box_sound]
 
 
@@ -390,6 +390,7 @@ class Species:
         self.health = health
         self.move_list = move_list
 
+
 class DummyPlayer():
     def __init__(self, player_rect, current_move, move_list, jump, skin, state):
         self.player_rect = player_rect
@@ -398,6 +399,7 @@ class DummyPlayer():
         self.jump = jump
         self.skin = skin
         self.state = state
+
 
 class Player(Species):
     def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health, level_num):
@@ -455,7 +457,7 @@ class Player(Species):
             self.jump.calc_new_y(self)
 
         # Gravity -> if no jump is performed, check if underground under the player
-        elif self.collide(self.player_rect.x + PLAYERWIDTH // 2, self.player_rect.y + PLAYERHEIGHT + 1) == False:
+        elif not self.collide(self.player_rect.x + PLAYERWIDTH // 2, self.player_rect.y + PLAYERHEIGHT + 1):
             # Coordinate values from bottom middle player have no collision
             # -> no collision with level blocks when player moves one place down
             for i in range(1, self.jump.size + 1):
@@ -556,7 +558,7 @@ class Player(Species):
                         self.current_move = 2
                         self.state = 0
                     if event.key == pygame.K_UP:
-                        if self.jump.is_running == False:
+                        if not self.jump.is_running:
                             # if no jump is performed just yet
                             self.state = 0
                             self.jump.jump_init(self.speed // 2)
@@ -762,7 +764,6 @@ class Level:
             i += 1
 
 
-
 # printen
 def text_object(text="", font="", color="RED"):
     textSurface = font.render(text, True, color)
@@ -955,32 +956,40 @@ def check_events(game_state):
 
     return game_state
 
+
 dummy_jump = Jump(0)
-dummy_player = DummyPlayer(pygame.Rect(140,200,70,105),0,move_list_player,dummy_jump,std_skin,0)
-dummy_player2 = DummyPlayer(pygame.Rect(360,200,70,105),0,move_list_player,dummy_jump,std_skin,0)
+dummy_player = DummyPlayer(pygame.Rect(140, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
+dummy_player2 = DummyPlayer(pygame.Rect(360, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
 jump_count = 5
 is_jumping = False
 alien_state = 0
+
 
 def paint_help():
     global jump_count
     global is_jumping
     global alien_state
-    gameDisplay.blit(smal_background,(-2,117))
-    gameDisplay.blit(potions_img,(570,200))
-    gameDisplay.blit(pygame.transform.scale(green_enemy_right[int(alien_state/2)],(75,105)), (800, 200))
-    if alien_state < (len(green_enemy_right)-1)*2:
+    gameDisplay.blit(smal_background, (-2, 117))
+    gameDisplay.blit(potions_img, (570, 200))
+    gameDisplay.blit(pygame.transform.scale(green_enemy_right[int(alien_state / 2)], (75, 105)), (800, 200))
+    if alien_state < (len(green_enemy_right) - 1) * 2:
         alien_state += 1
-    else: alien_state = 0
-    gameDisplay.blit(pygame.transform.scale(getattr(dummy_player.skin,dummy_player.move_list[dummy_player.current_move])[dummy_player.state],(70,105)), (dummy_player.player_rect.x, dummy_player.player_rect.y))
-    if dummy_player.state < len(getattr(dummy_player.skin,dummy_player.move_list[dummy_player.current_move]))-1 :
-        dummy_player.state += 1
-    else: dummy_player.state = 0
+    else:
+        alien_state = 0
     gameDisplay.blit(pygame.transform.scale(
-        getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])[dummy_player2.state], (75, 105)),
-                     (dummy_player2.player_rect.x, dummy_player2.player_rect.y))
-    if dummy_player2.current_move == 0 :
-        if dummy_player2.state < len(getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])) - 1:
+        getattr(dummy_player.skin, dummy_player.move_list[dummy_player.current_move])[dummy_player.state], (70, 105)),
+                     (dummy_player.player_rect.x, dummy_player.player_rect.y))
+    if dummy_player.state < len(getattr(dummy_player.skin, dummy_player.move_list[dummy_player.current_move])) - 1:
+        dummy_player.state += 1
+    else:
+        dummy_player.state = 0
+    gameDisplay.blit(pygame.transform.scale(
+        getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])[dummy_player2.state],
+        (75, 105)),
+        (dummy_player2.player_rect.x, dummy_player2.player_rect.y))
+    if dummy_player2.current_move == 0:
+        if dummy_player2.state < len(
+                getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])) - 1:
             dummy_player2.state += 1
         else:
             dummy_player2.state = 0
@@ -990,10 +999,12 @@ def paint_help():
             is_jumping = False
             dummy_player2.current_move = 0
             jump_count = 5
-        else: jump_count -= 1
-        if jump_count >=0:
+        else:
+            jump_count -= 1
+        if jump_count >= 0:
             dummy_player2.state = 1
-        else: dummy_player2.state = 2
+        else:
+            dummy_player2.state = 2
 
 
 def credits_menu_loop(game_state):
@@ -1021,6 +1032,7 @@ def credits_menu_loop(game_state):
         pygame.display.update()
         clock.tick(20)
     return game_state
+
 
 def how_to_play_loop(game_state):
     gameDisplay.blit(menu_navbar, (0, 0))
@@ -1051,6 +1063,7 @@ def how_to_play_loop(game_state):
         pygame.display.update()
         clock.tick(20)
     return game_state
+
 
 def options_menu_loop(game_state, former_game_state):
     draw_options_background()
@@ -1097,7 +1110,6 @@ def menu_score_loop(game_state):
     draw_menu_background()
 
     while game_state == 2:
-
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
@@ -1123,12 +1135,13 @@ def main():
             game_state = options_menu_loop(3, former_game_state)
         elif game_state == 4:
             game_state = game_loop(1)
-        elif game_state == 9 :
+        elif game_state == 9:
             game_state = how_to_play_loop(game_state)
             former_game_state = 9
         elif game_state == 10:
             game_state = credits_menu_loop(10)
             former_game_state = 10
+
 
 def check_create(enemy_status, player_pos):
     """
