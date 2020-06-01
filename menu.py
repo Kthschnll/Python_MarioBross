@@ -44,7 +44,7 @@ POWERUP_BLOCK = [56, 57, 63, 64]
 RARE_BLOCK = [45, 46, 47, 48]
 END_BLOCK = 11  # Ende von Spiel
 WATER_BLOCK = 40
-ENEMY_SPAWN = [54, 55, 61, 62]
+COIN_BLOCK = [54, 55, 61, 62]
 NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 31, 32, 33, 34,
                       41, 42, 43, 44]
 
@@ -305,7 +305,7 @@ class Timer:
         self.start = time.time()  # starter tick
         self.font = pygame.font.SysFont(None, 40)  # create Font
 
-    def draw(self):
+    def draw(self, lifes):
         """
             date:
                 - 27.05.2020
@@ -320,14 +320,18 @@ class Timer:
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
+        health = self.font.render("Lifes: {0} ".format(int(lifes)), True, WHITE)
         gameDisplay.blit(timer, (0, 0))
+        gameDisplay.blit(health, (0, 50))
 
 
 class Jump:
-    def __init__(self, jump_count):
+    def __init__(self, jump_count, jump_height):
         self.jump_count = jump_count
-        self.jump_height = BLOCKHEIGHT * 2 + 10
+        self.jump_height = jump_height
         # max. jump height
+        self.jump_height_count = 0
+        # for counting space that is already jumped
         self.cancel = False
         # indicates if the player still performs the jump,
         # if cancle = True: either an obstacle in the way or user does not press the "Jump" button anymore
@@ -340,7 +344,7 @@ class Jump:
         self.is_running = True
         self.cancel = False
         # jump is not at the end
-        self.jump_height = BLOCKHEIGHT * 2 + 10
+        self.jump_height_count = self.jump_height
         self.size = speed
         # jump faster if the player has more speed
 
@@ -357,9 +361,9 @@ class Jump:
             todo:
                 - Loop count not +1, to do it more more efficient
         """
-        self.jump_height -= self.size
+        self.jump_height_count -= self.size
         # max. possible jump height - Number of pixels player is jumping
-        if self.jump_height >= 0:
+        if self.jump_height_count >= 0:
             # player can still jump
             for x in range(1, self.size + 1):
                 player.player_rect.y -= 1
@@ -510,12 +514,11 @@ class Player(Species):
             print("found rare item")
             collision = False
         elif block_value == WATER_BLOCK:
-            print("water")
             self.health -= 3
             # Player die
             collision = True
-        elif block_value in ENEMY_SPAWN:
-            print("new enemy")
+        elif block_value in COIN_BLOCK:
+            print("found coin")
             collision = False
         elif block_value == END_BLOCK:
             self.reached_end = True
@@ -653,119 +656,23 @@ class Player(Species):
                  - Timer ablaufen lassen ??
                  - todo high jump implementieren
         """
-        high_jump = Jump(0)  # for red item
-        red_item = Item("red", False, 5, red_skin, high_jump, 20, 0, self)
-        green_item = Item("green", False, 5, green_skin, self.jump, 30, 0, self)
 
         if num == 56:
-            print("Grün")
-            self = green_item.item_init(self)
+            print("Grün_skin green +jump")
+            self.skin = green_skin
+            high_jump = Jump(0, BLOCKHEIGHT * 3 + 10)
+            self.jump = high_jump
         elif num == 57:
-            print("rot")
-            self = red_item.item_init(self)
+            print("rot_skinred + speed_")
+            self.speed += 1
+            if self.skin == green_skin:
+                self.skin = red_skin
         elif num == 63:
-            print("braun")
+            print("braun_leben +1")
+            self.health += 1
         elif num == 64:
-            print("gelb")
-            self = red_item.item_init(self)
-
-
-class Item:
-    def __init__(self, color, collected, duration, skin, jump, speed, health, player_copy):
-        self.color = color
-        self.duration = duration  # in sec
-        self.skin = skin
-        self.jump = jump
-        self.speed = speed
-        self.player_copy = player_copy
-        self.health = health
-        self.collected = collected
-
-    def item_init(self, player):
-        if not self.collected:
-            self.player_copy = player
-            player.skin = self.skin
-            player.jump = self.jump
-            player.speed = self.speed
-            player.health += self.health
-            self.collected = True
-            self.start_time()
-        return player
-
-    def start_time(self):
-        time1 = Timer()
-
-    def time_is_up(self, player):
-        player.skin = self.player_copy.skin
-        player.jump = self.player_copy.jump
-        player.speed = self.player_copy.speed
-        return player
-
-
-class Enemy(Species):
-    def __init__(self, player_rect, current_move, move_list, skin, state, alive, range, sporn_x, speed, health):
-        super().__init__(player_rect, current_move, move_list, skin, state, speed, health)
-        self.alive = alive
-        self.range = range
-        self.sporn_x = sporn_x
-
-    def draw_self(self, player):
-        if self.alive:
-            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[self.state],
-                             (self.player_rect.x, self.player_rect.y))
-            self.collide_detection(player)
-            self.calc_next_x_position(player)
-            if self.state < (len(self.skin.run_right) - 1):
-                self.state += 1
-            else:
-                self.state = 0
-
-    def calc_next_x_position(self, player):
-        if self.current_move == 0:
-            if self.player_rect.x < self.sporn_x + self.range:
-                if player.current_move == 1:
-                    self.player_rect.x += (self.speed - player.speed)
-                    self.sporn_x -= player.speed
-                elif player.current_move == 2:
-                    self.player_rect.x += (self.speed + player.speed)
-                    self.sporn_x += player.speed
-                else:
-                    self.player_rect.x += self.speed
-            else:
-                self.current_move = 1
-        if self.current_move == 1:
-            if self.player_rect.x > self.sporn_x - self.range:
-                if player.current_move == 1:
-                    self.player_rect.x -= (self.speed + player.speed)
-                    self.sporn_x -= player.speed
-                elif player.current_move == 2:
-                    self.player_rect.x -= (self.speed - player.speed)
-                    self.sporn_x += player.speed
-                else:
-                    self.player_rect.x -= self.speed
-            else:
-                self.current_move = 0
-
-    def collide_detection(self, player):
-        if self.player_rect.x - PLAYERWIDTH <= player.player_rect.x <= self.player_rect.x + PLAYERWIDTH:
-            if self.player_rect.y - PLAYERHEIGHT + 5 <= player.player_rect.y <= self.player_rect.y + PLAYERHEIGHT + 5:
-                if player.player_rect.y + PLAYERHEIGHT - 15 <= self.player_rect.y:
-                    self.alive = False
-                    self.die_animation(player)
-                else:
-                    print("player lost life")
-
-    def die_animation(self, player):
-        for i in range(6):
-            gameDisplay.blit(getattr(player.skin, player.move_list[player.current_move])[player.state],
-                             (player.player_rect.x, player.player_rect.y))
-            if i % 2 == 0:
-                gameDisplay.blit(
-                    pygame.transform.scale(getattr(self.skin, self.move_list[self.current_move])[3],
-                                           (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
-                    (self.player_rect.x, self.player_rect.y + 10))
-            pygame.display.update()
-            pygame.time.wait(60)
+            print("gelb leben +2")
+            self.health += 2
 
 
 class Background:
@@ -898,7 +805,6 @@ def draw_level_place_holder():
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
             if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, GRAY, (x + 100, y + 90))
-    gameDisplay.blit(level_1_img, (70, 90))
 
 
 def draw_level_nums():
@@ -1239,15 +1145,90 @@ def check_create(enemy_status, player_pos):
             - noch mehr gegner erstellen abh. von player_pos
     """
     # 0 = not created, 1 = create, 2 = created, 3 = dead
-    if player_pos >= 500 and enemy_status[0] == 0:
+    """
+    if player_pos >= 200 and enemy_status[0] == 0:
+        # 3100
+        print("enemy 1 erstellt")
         # if enemy is not created and player vertical pos above 500
         enemy_status[0] = 1
         # manipulate arrray, so that gameloop can create enemy
     elif player_pos >= 1000 and enemy_status[1] == 0:
         enemy_status[1] = 1
-
+    """
     return enemy_status
 
+
+class Enemy(Species):
+    def __init__(self, enemy_rect, current_move, move_list, skin, state, speed, health, range):
+        super().__init__(enemy_rect, current_move, move_list, skin, state, speed, health)
+        self.alive = True
+        self.range = range
+        # max. movement into one direction
+        self.movement = 0
+        self.direction = 0
+        # movement to the left, to player
+
+    def draw_self(self):
+        if self.alive:
+            gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[self.state],
+                             (self.player_rect.x, self.player_rect.y))
+            pygame.display.update()  # Display updaten
+            print("pause")
+            time.sleep(2)
+            print("pause ende")
+            self.move()
+            if self.state < (len(self.skin.run_right) - 1):
+                self.state += 1
+            else:
+                self.state = 0
+
+    def move(self):
+        if self.movement <= self.range:
+            if self.direction == 0:
+                # movement to the left
+                self.player_rect.x -= self.speed
+                self.movement += self.speed
+            else:
+                # movement to the right
+                self.player_rect.x += self.speed
+                self.movement += self.speed
+        else:
+            if self.direction == 0:
+                self.direction = 1
+                # change movement to the right
+            else:
+                self.direction = 0
+                # change movement to the right
+
+            self.movement == 0
+
+            # movement begins new
+
+    """
+    def collide_detection(self, pos_player):
+        if self.player_rect.x - PLAYERWIDTH <= pos_player.x <= self.player_rect.x + PLAYERWIDTH:
+            if self.player_rect.y - PLAYERHEIGHT + 5 <= player.player_rect.y <= self.enemy_rect.y + PLAYERHEIGHT + 5:
+                if pos_player.y + PLAYERHEIGHT - 15 <= self.player_rect.y:
+                    self.alive = False
+                    # self.die_animation(player)
+                else:
+                    print("player lost life")
+    """
+    """
+    def die_animation(self, player):
+        for i in range(6):
+            for j in range(len(background_list)):
+                gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
+            gameDisplay.blit(getattr(player.skin, player.move_list[player.current_move])[player.state],
+                             (player.player_rect.x, player.player_rect.y))
+            if i % 2 == 0:
+                gameDisplay.blit(
+                    pygame.transform.scale(getattr(self.skin, self.move_list[self.current_move])[3],
+                                           (PLAYERWIDTH, (PLAYERHEIGHT - 10))),
+                    (self.player_rect.x, self.player_rect.y + 10))
+            pygame.display.update()
+            pygame.time.wait(60)
+    """
 
 
 def game_loop(level_num):
@@ -1270,10 +1251,10 @@ def game_loop(level_num):
     """
     running = True
     # create objects
-    std_jump = Jump(0)
+    std_jump = Jump(0, BLOCKHEIGHT * 2 + 10)
     player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
-                    red_skin, 0, 20, 2, level_num)
+                    std_skin, 0, 20, 2, level_num)
 
     level = Level(level_num)
 
@@ -1287,30 +1268,31 @@ def game_loop(level_num):
         gameDisplay.fill(BLUE)
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
-        """
-        # sporn_x = 990
+
         enemy_status = check_create(enemy_status, player.player_rect.x)
+
         for i in enemy_status:
             for j in range(0, 4):
                 if i == 1:
                     if j == 0:
-                        enemy_1 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True, 30,
-                                        700, 1, 1)
+                        # def __init__(self, enemy_rect, current_move, move_list, skin, state, speed, health, range):
+                        enemy_1 = Enemy(pygame.Rect(3100, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
+                                        green_alien, 0, 10, 1, 750)
                         enemy_status[j] = 2
                     elif j == 1:
-                        enemy_2 = Enemy(pygame.Rect(700, 400, 50, 75), 0, move_list_alien, green_alien, 0, True,
-                                        30, 700, 1, 1)
+                        enemy_2 = Enemy(pygame.Rect(6000, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
+                                        green_alien, 0, 10, 1, 750)
                         enemy_status[j] = 2
                 if i == 2:
                     if j == 0:
-                        enemy_1.draw_self(player)
+                        enemy_1.draw_self()
+                        print("enemy draw")
                     elif j == 1:
-                        enemy_2.draw_self(player)
-        """
+                        enemy_2.draw_self()
 
         player.draw_self()
         running = player.dead()
-        time.draw()  # for Time
+        time.draw(player.health)  # for Time, and health
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)
