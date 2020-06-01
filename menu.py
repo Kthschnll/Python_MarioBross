@@ -362,13 +362,12 @@ class Jump:
         self.is_running = False
         # when it is True new jump is not accepted
 
-    def jump_init(self, speed):
+    def jump_init(self):
         self.is_running = True
         self.cancel = False
         # jump is not at the end
         self.jump_height_count = self.jump_height
-        self.size = speed
-        # jump faster if the player has more speed
+        self.size = 10
 
     def calc_new_y(self, player):
         """
@@ -448,33 +447,6 @@ class Player(Species):
             todo:
                 - Loop count not +1, to do it more more efficient
         """
-        # Player want to move to the right
-        if self.current_move == 1:
-            for i in range(1, self.speed + 1):
-                # count i up, maximal speed if there is no collision
-                self.player_rect.x += 1
-                if self.collide(self.player_rect.x + PLAYERWIDTH, self.player_rect.y + 1) or self.collide(
-                        self.player_rect.x + PLAYERWIDTH, self.player_rect.y + PLAYERHEIGHT):
-                    # coordinate values from top right player or bottom right have collision
-                    # - 1 to make player fit through gaps and
-                    self.player_rect.x -= 1
-                    # change players horizontal position back
-                    break
-
-        # Player want to move to the left
-        elif self.current_move == 2:
-            for i in range(1, self.speed + 1):
-                # count i up, maximal speed if there is no collision
-                self.player_rect.x -= 1
-                if self.player_rect.x <= 0:
-                    # Left screen end is reached
-                    self.player_rect.x = 0
-                if self.collide(self.player_rect.x, self.player_rect.y + 1) or self.collide(self.player_rect.x,
-                                                                                            self.player_rect.y + PLAYERHEIGHT):
-                    # coordinate values from top left player or bottom left have collision
-                    self.player_rect.x += 1
-                    # change players horizontal position back
-                    break
 
         # Player want to jump up
         if self.jump.is_running and not self.jump.cancel:
@@ -503,6 +475,35 @@ class Player(Species):
         else:
             self.jump.is_running = False
             # new jump can begin, because player already reached the ground
+
+        # Player want to move to the right
+        if self.current_move == 1:
+            for i in range(1, self.speed + 1):
+                # count i up, maximal speed if there is no collision
+                self.player_rect.x += 1
+                if self.collide(self.player_rect.x + PLAYERWIDTH, self.player_rect.y + 1) or self.collide(
+                        self.player_rect.x + PLAYERWIDTH, self.player_rect.y + PLAYERHEIGHT):
+                    # coordinate values from top right player or bottom right have collision
+                    # - 1 to make player fit through gaps and
+                    self.player_rect.x -= 1
+                    # change players horizontal position back
+                    break
+
+        # Player want to move to the left
+        elif self.current_move == 2:
+            for i in range(1, self.speed + 1):
+                # count i up, maximal speed if there is no collision
+                self.player_rect.x -= 1
+                if self.player_rect.x <= 0:
+                    # Left screen end is reached
+                    self.player_rect.x = 0
+                if self.collide(self.player_rect.x, self.player_rect.y + 1) or self.collide(self.player_rect.x,
+                                                                                            self.player_rect.y + PLAYERHEIGHT):
+                    # coordinate values from top left player or bottom left have collision
+                    self.player_rect.x += 1
+                    # change players horizontal position back
+                    break
+
 
     def collide(self, x_pos_player, y_pos_player):
         """
@@ -604,14 +605,13 @@ class Player(Species):
                         if not self.jump.is_running:
                             # if no jump is performed just yet
                             self.state = 0
-                            self.jump.jump_init(self.speed // 2)
+                            self.jump.jump_init()
                             # set: is_running = True , cancel = False
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
                     self.current_move = 0
                     self.state = 0
                 if event.key == pygame.K_UP:
-                    # self.current_move = 0
                     self.jump.cancel = True
                     # Jump is canceled, new jump can only start when jump.is_running is set to False
                     self.state = 0
@@ -637,7 +637,7 @@ class Player(Species):
             font = pygame.font.SysFont(None, 100)
             gameDisplay.fill(BLACK)
             end = font.render(("You Lost"), True, WHITE)
-            gameDisplay.blit(end, (300, 300))
+            gameDisplay.blit(end, (350, 280))
             pygame.display.update()
             play_music(5)
             time.sleep(2)
@@ -1314,7 +1314,7 @@ def game_loop(level_num):
     std_jump = Jump(0, BLOCKHEIGHT * 2 + 10)
     player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
-                    std_skin, 0, 15, 2, level_num)
+                    std_skin, 0, 14, 2, level_num)
 
     level = Level(level_num)
 

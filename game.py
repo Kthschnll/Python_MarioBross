@@ -13,18 +13,6 @@ only_files = [files for files in listdir(resources_path_player) if isfile(join(r
 
 
 
-for myfile in only_files:
-    if "left" in myfile:
-        left_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
-    if "right" in myfile:
-        right_walk.append(
-            pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
-    if "jump" in myfile:
-        jump_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
-    if "idle" in myfile:
-        idle_walk.append(pg.transform.scale(pg.image.load(resources_path_player + myfile), (PLAYERWIDTH, PLAYERHEIGHT)))
-
-
 
 
 
