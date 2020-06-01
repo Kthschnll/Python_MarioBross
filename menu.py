@@ -52,6 +52,7 @@ NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 
 resources_path = "res/menu/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
+resources_path_credits= "res/Credits/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -60,6 +61,9 @@ options_menu_background = pygame.transform.scale(pygame.image.load(resources_pat
                                                  (200, 110))
 default_img = pygame.transform.scale(pygame.image.load(resources_path + "default_img.png"), (1, 1))
 logo_img = pygame.transform.scale(pygame.image.load(resources_path + "Jumpmaster24_red.png"), (600, 450))
+smal_background = pygame.transform.scale(pygame.image.load(resources_path + "Smal_mb.png"), (1000, 200))
+potions_img = pygame.transform.scale(pygame.image.load(resources_path + "potions.png"), (100, 105))
+level_1_img = pygame.transform.scale(pygame.image.load(resources_path + "level_1.PNG"), (240, 175))
 
 # load buttons
 button_names = ["_sdt", "_hower", "_clicked"]
@@ -188,6 +192,14 @@ for i in range(5):
     background_img.append(
         pygame.transform.scale(pygame.image.load(resources_path_level_background + "bg" + str(i + 1) + ".png"),
                                (1000, 600)))
+
+#load credit images
+frame_traxx = pygame.transform.scale(pygame.image.load(resources_path_credits + "FrameTraxx.jpg"), (130, 130))
+jungle_logo = pygame.transform.scale(pygame.image.load(resources_path_credits + "Jungle_Pack.PNG"), (300, 120))
+jungle_sample = pygame.transform.scale(pygame.image.load(resources_path_credits + "Jungle_P.PNG"), (130, 130))
+nature_logo = pygame.transform.scale(pygame.image.load(resources_path_credits + "Tileset_RP.PNG"), (300, 170))
+nature_sample = pygame.transform.scale(pygame.image.load(resources_path_credits + "Tileset_RP2.PNG"), (130, 130))
+
 # global music varables
 music_on = True
 sound_on = True
@@ -195,6 +207,7 @@ music_menu = False
 music_list = ["res/sound/level_music.mp3", "res/sound/menu_music.mp3"]
 # colors
 WHITE = (255, 255, 255)
+DARK_BLUE =(0,38,56)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 153, 220)
@@ -252,7 +265,7 @@ scores_button = Button("Scores", pygame.Rect(192, 5, 90, 30), 2)
 options_button = Button("", pygame.Rect(966, 5, 30, 30), 3, False, options_button_list[0])
 check_box_music = Button("", pygame.Rect(950, 52, 30, 30), 4, True, cb_img_list[0])
 check_box_sound = Button("", pygame.Rect(950, 92, 30, 30), 4, True, cb_img_list[0])
-play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_place_holder)
+play_button = Button("", pygame.Rect(70, 90, 240, 175), 5, False, play_button_img_list[0], level_1_img)
 credits_button = Button("Credits", pygame.Rect(380, 5, 90, 30), 10)
 how_to_play_button = Button("Help",pygame.Rect(286, 5, 90, 30), 9)
 menu_button_list = [home_button, level_button, scores_button,how_to_play_button,credits_button]
@@ -373,6 +386,14 @@ class Species:
         self.health = health
         self.move_list = move_list
 
+class DummyPlayer():
+    def __init__(self, player_rect, current_move, move_list, jump, skin, state):
+        self.player_rect = player_rect
+        self.current_move = current_move
+        self.move_list = move_list
+        self.jump = jump
+        self.skin = skin
+        self.state = state
 
 class Player(Species):
     def __init__(self, player_rect, current_move, move_list, jump, skin, state, speed, health, level_num):
@@ -736,8 +757,6 @@ class Enemy(Species):
 
     def die_animation(self, player):
         for i in range(6):
-            for j in range(len(background_list)):
-                gameDisplay.blit(background_list[j].image, (background_list[j].x, background_list[j].y))
             gameDisplay.blit(getattr(player.skin, player.move_list[player.current_move])[player.state],
                              (player.player_rect.x, player.player_rect.y))
             if i % 2 == 0:
@@ -836,21 +855,6 @@ class Level:
             i += 1
 
 
-# create backgrounds
-sporn_x = 990
-background_4 = Background(0, 0, 0, background_img[4], 0)
-background_32 = Background(sporn_x, 0, 1, background_img[3], 0)
-background_31 = Background(0, 0, 1, background_img[3], 0)
-background_22 = Background(sporn_x, 0, 2, background_img[2], 0)
-background_21 = Background(0, 0, 2, background_img[2], 0)
-background_12 = Background(sporn_x, 0, 3, background_img[1], 0)
-background_11 = Background(0, 0, 3, background_img[1], 0)
-background_02 = Background(sporn_x, 0, 7, background_img[0], 0)
-background_01 = Background(0, 0, 7, background_img[0], 0)
-
-background_list = [background_4, background_32, background_31, background_22, background_21, background_12,
-                   background_11, background_02, background_01]
-
 
 # printen
 def text_object(text="", font="", color="RED"):
@@ -894,6 +898,7 @@ def draw_level_place_holder():
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
             if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, GRAY, (x + 100, y + 90))
+    gameDisplay.blit(level_1_img, (70, 90))
 
 
 def draw_level_nums():
@@ -902,11 +907,6 @@ def draw_level_nums():
             x = i % 3 * 290 + 80
             y = j * 250 + 100
             static_display(str(j * 3 + i + 1), 40, WHITE, (x + 40, y + 40))
-
-
-def draw_level_background():
-    for i in range(len(background_list)):
-        background_list[i].draw_self()
 
 
 def check_buttons():
@@ -983,13 +983,9 @@ def play_music(game_state):
 
 def check_events(game_state):
     global music_on
+    global is_jumping
     for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                game_state = 100
-            elif event.key == pygame.K_g:
-                game_state = 4
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             # 1 is the left mouse button, 2 is middle, 3 is right.
             if event.button == 1:
                 # check buttons
@@ -1012,8 +1008,9 @@ def check_events(game_state):
                                 music_on = True
                                 play_music(game_state)
                 if play_button.button_rect.collidepoint(event.pos):
-                    play_button.is_clicked = True
-                    play_button.is_painted = 2
+                    if game_state == 1:
+                        play_button.is_clicked = True
+                        play_button.is_painted = 2
         elif event.type == pygame.MOUSEBUTTONUP:
             # 1 is the left mouse button, 2 is middle, 3 is right.
             if event.button == 1:
@@ -1029,14 +1026,89 @@ def check_events(game_state):
                     play_button.is_clicked = False
                     check_trans_button(play_button, play_button_img_list)
                     game_state = 4
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                dummy_player.current_move = 1
+                dummy_player.state = 0
+                print(dummy_player.current_move)
+            elif event.key == pygame.K_LEFT:
+                dummy_player.current_move = 2
+                dummy_player.state = 0
+            elif event.key == pygame.K_SPACE:
+                game_state = 100
+            elif event.key == pygame.K_g:
+                game_state = 4
+            elif event.key == pygame.K_UP:
+                if not is_jumping:
+                    dummy_player2.current_move = 3
+                    dummy_player2.state = 0
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+                dummy_player.current_move = 0
+                dummy_player.state = 0
+
     return game_state
+
+dummy_jump = Jump(0)
+dummy_player = DummyPlayer(pygame.Rect(140,200,70,105),0,move_list_player,dummy_jump,std_skin,0)
+dummy_player2 = DummyPlayer(pygame.Rect(360,200,70,105),0,move_list_player,dummy_jump,std_skin,0)
+jump_count = 5
+is_jumping = False
+alien_state = 0
+
+def paint_help():
+    global jump_count
+    global is_jumping
+    global alien_state
+    gameDisplay.blit(smal_background,(-2,117))
+    gameDisplay.blit(potions_img,(570,200))
+    gameDisplay.blit(pygame.transform.scale(green_enemy_right[int(alien_state/2)],(75,105)), (800, 200))
+    if alien_state < (len(green_enemy_right)-1)*2:
+        alien_state += 1
+    else: alien_state = 0
+    gameDisplay.blit(pygame.transform.scale(getattr(dummy_player.skin,dummy_player.move_list[dummy_player.current_move])[dummy_player.state],(70,105)), (dummy_player.player_rect.x, dummy_player.player_rect.y))
+    if dummy_player.state < len(getattr(dummy_player.skin,dummy_player.move_list[dummy_player.current_move]))-1 :
+        dummy_player.state += 1
+    else: dummy_player.state = 0
+    gameDisplay.blit(pygame.transform.scale(
+        getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])[dummy_player2.state], (75, 105)),
+                     (dummy_player2.player_rect.x, dummy_player2.player_rect.y))
+    if dummy_player2.current_move == 0 :
+        if dummy_player2.state < len(getattr(dummy_player2.skin, dummy_player2.move_list[dummy_player2.current_move])) - 1:
+            dummy_player2.state += 1
+        else:
+            dummy_player2.state = 0
+    else:
+        dummy_player2.player_rect.y -= jump_count * abs(jump_count)
+        if jump_count == -5:
+            is_jumping = False
+            dummy_player2.current_move = 0
+            jump_count = 5
+        else: jump_count -= 1
+        if jump_count >=0:
+            dummy_player2.state = 1
+        else: dummy_player2.state = 2
+
+
 def credits_menu_loop(game_state):
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
     text = "Music:"
-    static_display(text, 20, WHITE, (100, 100))
+    static_display(text, 20, WHITE, (100, 120))
     text = "www.frametraxx.de/musik/einsatzgebiete/musik-social-media/"
-    static_display(text, 15, WHITE, (295, 120))
+    static_display(text, 15, WHITE, (295, 150))
+    text = "Character Skin:"
+    static_display(text, 20, WHITE, (146, 280))
+    text = "https://rottingpixels.itch.io/nature-platformer-tileset"
+    static_display(text, 15, WHITE, (260, 310))
+    text = "Level Tileset:"
+    static_display(text, 20, WHITE, (134, 440))
+    text = "https://jesse-m.itch.io/jungle-pack"
+    static_display(text, 15, WHITE, (194, 470))
+    gameDisplay.blit(frame_traxx, (700, 80))
+    gameDisplay.blit(jungle_sample, (700, 240))
+    gameDisplay.blit(nature_sample, (700, 400))
+
     while game_state == 10:
         check_buttons()
         game_state = check_events(game_state)
@@ -1047,12 +1119,31 @@ def credits_menu_loop(game_state):
 def how_to_play_loop(game_state):
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
+    text = "Try to reach the end of each level within as little time as possible"
+    static_display(text, 25, DARK_BLUE, (500, 450))
+    text = "Press 'left'/'right' key"
+    static_display(text, 15, WHITE, (180, 330))
+    text = "for running left/right"
+    static_display(text, 15, WHITE, (180, 350))
+    text = "Press 'up' key"
+    static_display(text, 15, WHITE, (400, 330))
+    text = "for jumping up"
+    static_display(text, 15, WHITE, (400, 350))
+    text = "Collect potions"
+    static_display(text, 15, WHITE, (620, 330))
+    text = "for extra speed/strengths"
+    static_display(text, 15, WHITE, (620, 350))
+    text = "Jump on enemies"
+    static_display(text, 15, WHITE, (840, 330))
+    text = "to defeat them"
+    static_display(text, 15, WHITE, (840, 350))
 
     while game_state == 9:
+        paint_help()
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(20)
     return game_state
 
 def options_menu_loop(game_state, former_game_state):
@@ -1100,9 +1191,7 @@ def menu_score_loop(game_state):
     draw_menu_background()
 
     while game_state == 2:
-        draw_level_background()
-        # green_enemy1.draw_self()
-        # player1.draw_self()
+
         check_buttons()
         game_state = check_events(game_state)
         pygame.display.update()
