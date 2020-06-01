@@ -5,6 +5,7 @@
 
 
 notes:
+- Start Game by running menu.py
 - We have implemented an opponent that does not move. It looks like a cactus.  
 - Unfortunately we could not finish the enemy class. At the appropriate place in the code the functionalities of the class are described.
 
