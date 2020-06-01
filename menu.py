@@ -234,6 +234,19 @@ class Button:
         self.image_below = image_below
 
     def draw_self(self):
+        """
+                   date:
+                       - 01.06.2020
+                   desc:
+                       - buttons from menu are drawn
+                       - Home, Level, Score, Help, Credits, Options, Music, Sound
+                   param:
+                       - self
+                   return:
+                       - nothing
+                   test:
+                       - try drawing with different images
+               """
         if self.is_clicked:
             if self.button_color in options_button_list:
                 self.button_color = options_button_list[2]
@@ -248,6 +261,18 @@ class Button:
         static_display(self.button_text, 20, WHITE, (self.button_rect.x + 43, self.button_rect.y + 18))
 
     def action(self, game_state):
+        """
+                   date:
+                       - 01.06.2020
+                   desc:
+                       - set game_state at the right mode for button function
+                       - let main switch between menu slides
+                       - Home, Level, Score, Help, Credits, Options
+                   param:
+                       - self, game_state
+                   return:
+                       - game_state
+        """
         stay = True
         if self.function != game_state:
             game_state = self.function
@@ -285,7 +310,7 @@ class PlayerSkin(Skin):
         self.jump_left = jump_left
 
 
-# init Skins
+#create Skins
 red_skin = PlayerSkin(red_stay_img_list, red_run_right_img_list, red_run_left_img_list, red_jump_mid_img_list,
                       red_jump_right_img_list, red_jump_left_img_list)
 std_skin = PlayerSkin(stay_img_list, run_right_img_list, run_left_img_list, jump_mid_img_list,
@@ -403,6 +428,7 @@ class Species:
         self.health = health
         self.move_list = move_list
 
+#Dummy Player-Class used in help menu
 
 class DummyPlayer():
     def __init__(self, player_rect, current_move, move_list, jump, skin, state):
@@ -805,11 +831,33 @@ class Level:
 
 # printen
 def text_object(text="", font="", color="RED"):
+    """
+                   date:
+                       - 01.06.2020
+                   desc:
+                       - from python lecture
+                       - render text for static_display() or message_display()
+                   param:
+                       - text, font, color
+                   return:
+                       - textSurface, textSurface.get_rect()
+        """
     textSurface = font.render(text, True, color)
     return textSurface, textSurface.get_rect()
 
 
 def message_display(text="", size=50, color="RED"):
+    """
+                   date:
+                       - 01.06.2020
+                   desc:
+                       - from python lecture
+                       - send non permanent massage to gameDisplay
+                   param:
+                       - text, size, color
+                   return:
+                       - nothing
+        """
     largeText = pygame.font.Font("freesansbold.ttf", size)
     TextSurf, TextRect = text_object(text, largeText, color)
     TextRect.center = ((DISPLAYWIDTH / 2), (DISPLAYHEIGHT / 2))
@@ -818,6 +866,17 @@ def message_display(text="", size=50, color="RED"):
 
 
 def static_display(text="", size=10, color="BLACK", position=((DISPLAYWIDTH / 2), (DISPLAYHEIGHT / 2))):
+    """
+                      date:
+                          - 01.06.2020
+                      desc:
+                          - from python lecture
+                          - print text on gameDisplay
+                      param:
+                          - text, size, color, position
+                      return:
+                          - nothing
+           """
     largeText = pygame.font.Font("freesansbold.ttf", size)
     TextSurf, TextRect = text_object(text, largeText, color)
     TextRect.center = position
@@ -826,17 +885,47 @@ def static_display(text="", size=10, color="BLACK", position=((DISPLAYWIDTH / 2)
 
 
 def draw_menu_background(text=""):
+    """
+                      date:
+                          - 01.06.2020
+                      desc:
+                          - draw menu background
+                      param:
+                          - text
+                      return:
+                          - nothing
+           """
     gameDisplay.blit(menu_background, (0, 38))
     static_display(text, 20, WHITE, (100, 100))
 
 
 def draw_options_background():
+    """
+                      date:
+                          - 01.06.2020
+                      desc:
+                          - draw background from options menu
+                      param:
+                          - nothing
+                      return:
+                          - nothing
+           """
     gameDisplay.blit(options_menu_background, (796, 35))
     static_display("Music", 20, WHITE, (840, 70))
     static_display("Sound effects", 18, WHITE, (870, 110))
 
 
 def draw_level_place_holder():
+    """
+                      date:
+                          - 01.06.2020
+                      desc:
+                          - draw place holder for level slide in menu
+                      param:
+                          - nothing
+                      return:
+                          - nothing
+           """
     for i in range(int(level_count / 2)):
         for j in range(int(level_count / 3)):
             x = i % 3 * 290 + 80
@@ -849,6 +938,16 @@ def draw_level_place_holder():
 
 
 def draw_level_nums():
+    """
+                      date:
+                          - 01.06.2020
+                      desc:
+                          - draw numbers on level place holder on level slide in menu
+                      param:
+                          - nothing
+                      return:
+                          - nothing
+           """
     for i in range(int(level_count / 2)):
         for j in range(int(level_count / 3)):
             x = i % 3 * 290 + 80
@@ -857,6 +956,18 @@ def draw_level_nums():
 
 
 def check_buttons():
+    """
+            date:
+                - 01.06.2020
+            desc:
+                - check if mouse is hovering over one of the menu buttons
+                - in that case change button image
+            param:
+                - nothing
+            return:
+                - nothing
+            test: while running test if image is changing while hovering over menu buttons and switch back if not anymore
+    """
     for i in range(len(menu_button_list)):
         if menu_button_list[i].button_rect.collidepoint(pygame.mouse.get_pos()):
             menu_button_list[i].button_color = button_image_list[1]
@@ -873,6 +984,18 @@ def check_buttons():
 
 
 def check_check_boxes():
+    """
+            date:
+                - 01.06.2020
+            desc:
+                - check if mouse is hovering over one of the checkboxes in options menu
+                - in that case change checkbox image
+            param:
+                - nothing
+            return:
+                - nothing
+            test: while running test if image is changing while hovering over checkbox and switch back if not anymore
+    """
     for i in range(len(check_box_list)):
         if check_box_list[i].button_rect.collidepoint(pygame.mouse.get_pos()):
             check_box_list[i].button_color = cb_img_list[1]
@@ -882,15 +1005,20 @@ def check_check_boxes():
         check_box_list[i].draw_self()
 
 
-def check_single_button(button, image_list):
-    if button.button_rect.collidepoint(pygame.mouse.get_pos()):
-        button.button_color = image_list[1]
-    else:
-        button.button_color = image_list[0]
-    button.draw_self()
-
-
 def check_trans_button(button, image_list):
+    """
+                date:
+                    - 01.06.2020
+                desc:
+                    - function for drawing a transparent button over another image
+                    - makes sure the button is only drawn once on mouse hovering
+                    - used at level menu slide for checking the play button for level 1
+                param:
+                    - button, image_list
+                return:
+                    - nothing
+                test: try hovering with the courser while running and check if the image lose its transparency
+        """
     color = 0
     if button.button_rect.collidepoint(pygame.mouse.get_pos()):
         button.button_color = image_list[1]
@@ -911,6 +1039,16 @@ def check_trans_button(button, image_list):
 
 
 def play_music(game_state):
+    """
+                date:
+                    - 01.06.2020
+                desc:
+                    - playes diffrent songs for diffrent game states
+                param:
+                    - game_state
+                return:
+                    - nothing
+    """
     if music_on:
         global music_menu
         if game_state < 4:
@@ -932,6 +1070,19 @@ def play_music(game_state):
 
 
 def check_events(game_state):
+    """
+                    date:
+                        - 01.06.2020
+                    desc:
+                        - method listens for events in all menu loops
+                        - listen on space to exit the game
+                        - listen on mouse click for switching between menu slides
+                        - listen on arrow keys for animation in help menu
+                    param:
+                        - game_state
+                    return:
+                        - game_state
+        """
     global music_on
     global is_jumping
     for event in pygame.event.get():
@@ -1009,6 +1160,18 @@ alien_state = 0
 
 
 def paint_help():
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - draw help slide in menu
+            - animate dummy players (running and jumping)
+        param:
+            - nothing
+        return:
+            - nothing
+        test: while running test if help slide is painted correctly try pressing the arrow keys and check jump and run animation
+    """
     global jump_count
     global is_jumping
     global alien_state
@@ -1051,6 +1214,16 @@ def paint_help():
 
 
 def credits_menu_loop(game_state):
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - draws images and text to give credits to the editors of used images and music
+        param:
+            - game_state
+        return:
+            - game_state
+    """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
     text = "Music:"
@@ -1078,6 +1251,17 @@ def credits_menu_loop(game_state):
 
 
 def how_to_play_loop(game_state):
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - help menu
+            - draws the static part from help slide in menu
+        param:
+            - game_state
+        return:
+            - game_state
+    """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
     text = "Try to reach the end of each level within as little time as possible"
@@ -1109,6 +1293,16 @@ def how_to_play_loop(game_state):
 
 
 def options_menu_loop(game_state, former_game_state):
+    """
+            date:
+                - 01.06.2020
+            desc:
+                - options menu
+            param:
+                - game_state
+            return:
+                - nothing
+    """
     draw_options_background()
 
     while game_state == 3:
@@ -1121,6 +1315,16 @@ def options_menu_loop(game_state, former_game_state):
 
 
 def menu_home_loop(game_state):
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - home menu
+        param:
+            - game_state
+        return:
+            - game_state
+    """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background("")
     gameDisplay.blit(logo_img, (185, 100))
@@ -1134,6 +1338,17 @@ def menu_home_loop(game_state):
 
 
 def menu_level_loop(game_state):
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - level menu
+            - connection point to start a level
+        param:
+            - game_state
+        return:
+            - game_state
+    """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
     draw_level_place_holder()
@@ -1149,6 +1364,17 @@ def menu_level_loop(game_state):
 
 
 def menu_score_loop(game_state):
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - score slide
+            - space to print highscores ( not incleded in this program)
+        param:
+            - game_state
+        return:
+            - game_state
+    """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
 
@@ -1161,6 +1387,18 @@ def menu_score_loop(game_state):
 
 
 def main():
+    """
+        date:
+            - 01.06.2020
+        desc:
+            - entry for running the code and close the game
+            - calling point of different game states
+            - seting former game state for comming back from option menu into former menu slide
+        param:
+            - nothing
+        return:
+            - nothing
+    """
     game_state = 0
     former_game_state = 0
     play_music(game_state)
