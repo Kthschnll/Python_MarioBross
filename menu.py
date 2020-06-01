@@ -516,8 +516,6 @@ class Player(Species):
              return:
                  - true:  if there is a collisions with blocks
                  - false: no collision
-             todo:
-                 - Bei end block ins Menü zurück oder Animation abspielen und Name eintragen wenn Highscore unter den besten 10
         """
         player_list = (x_pos_player // BLOCKWIDTH)
         # which list of the 2-dim array is relevant
@@ -630,6 +628,8 @@ class Player(Species):
                 - nothing
             return:
                 - running: running state of the function game_loop()
+            todo:
+                - if highscore in top 10, enter name
         """
         if self.health <= 0:
             # player has no lives left
@@ -1209,7 +1209,7 @@ def check_create(enemy_status, player_pos):
         return:
             - enemy_status
         todo:
-            - noch mehr gegner erstellen abh. von player_pos
+            - create more opponents depending on player_pos
     """
     # 0 = not created, 1 = create, 2 = created, 3 = dead
     if player_pos >= 200 and enemy_status[0] == 0:
@@ -1306,10 +1306,7 @@ def game_loop(level_num):
          return:
              - game_state: to jump back to menu
      	todo:
-     	    - Button um Spiel abzubrechen
-     	    - Gegener einbinden an den Stellen wo Coins sind (Gegenerlogik)
      	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
-     	    - Gegner move methode in dauerschleife er bewegt sich auch wenn kein event; ähnlich zu idle zustand
      	    - Highscore abspeichern, diesen im Menü anzeigen können (-> siehe helpful code, zum abspeichern in extra Datei)
     """
     running = True
