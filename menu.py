@@ -9,41 +9,34 @@ import time
 from level import get_level_array
 
 pygame.init()
-
-# wichtig: - absolute Postion des Player -> insgesamter Bewegungfortschritt; zurückgelegte distanz des Player
-#          - raltive Position von Player -> x-Position auf dem Bildschirm
-# todo (am Ende):   - extra: in allen Methoden angeben wie sie getestet werden können
-#                   - in Methoden/Funktionen todos schreiben wie Projekt erweitert werden kann
-
 # OS-Umgebung ---WIN10.10.02
-
-"""
-from PIL import Image, ImageGrab  # für crop & spiegeln
-# Methode um Bilder zu spiegeln 
-for myfile in only_files:
-    if "right" in myfile:
-        img = Image.open(resources_path_player + myfile)
-        img.transpose(Image.FLIP_LEFT_RIGHT).save(resources_path_player + "transpose_" + myfile)
-"""
+# absolute position of the player -> total movement progress; distance covered by the player
+# relative position of player -> x-position on the screen
 
 # gaming constants
 DISPLAYWIDTH = 1000
 DISPLAYHEIGHT = 600
-BLOCKWIDTH = 50  # BLOCKWIDTH so wählen dass gerade DISPLAYWIDTH/BLOCKWITDH = gerade Zahl
+BLOCKWIDTH = 50
 BLOCKHEIGHT = 50
 DISPLAYFLAG = 0
 DISPLAYCOLBIT = 32
-
-# level_array ist Liste, in dieser sind: x*level_lenght Listen von der jede y Werte hat
 PLAYERHEIGHT = 50
 PLAYERWIDTH = 40
+
+# colors
+WHITE = (255, 255, 255)
+DARK_BLUE = (0, 38, 56)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 153, 220)
+GRAY = (109, 107, 118)
 
 # define_blocks
 DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
 POWERUP_BLOCK = [56, 57, 63, 64]
 CACTUS_BLOCK = 45
 RARE_BLOCK = [46, 47, 48]
-END_BLOCK = 11  # Ende von Spiel
+END_BLOCK = 11
 YELLOW_COIN = 54
 RED_COIN = 55
 BLUE_COIN = 61
@@ -52,12 +45,20 @@ WATER_BLOCK = 40
 NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 31, 32, 33, 34,
                       41, 42, 43, 44]
 
-# menu grafics
+# load game pictures
+tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
+                                 (350, 550))
+coin_pic = pygame.transform.scale(pygame.image.load("res/level/coin.png"), (23, 23))
+
+# load paths
 resources_path = "res/menu/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
 resources_path_credits = "res/Credits/"
 resources_path_level = "res/level/"
+resources_path_player = "res/"
+
+# menu grafics
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -92,12 +93,6 @@ for i in range(len(button_names)):
         pygame.transform.scale(pygame.image.load(resources_path + "Play_button" + play_button_names[i] + ".png"),
                                (240, 175)))
 
-# load tileset
-tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
-                                 (350, 550))
-# load game pictures
-coin_pic = pygame.transform.scale(pygame.image.load("res/level/coin.png"), (23, 23))
-
 # load charrackter sprites
 run_right_img_list = []
 run_left_img_list = []
@@ -115,7 +110,6 @@ green_stay_img_list = []
 green_jump_right_img_list = []
 green_jump_left_img_list = []
 
-resources_path_player = "res/"
 skin_list = ["std_skin/", "red_skin/", "green_skin/"]
 
 # run images
@@ -179,7 +173,6 @@ for i in range(4):
         pygame.transform.scale(
             pygame.image.load(resources_path_player + skin_list[2] + "jump_left" + str(i) + "_green.png"),
             (PLAYERWIDTH, PLAYERHEIGHT)), True, False))
-
 jump_mid_img_list = [jump_right_img_list[0], jump_right_img_list[0], jump_right_img_list[3]]
 red_jump_mid_img_list = [red_jump_right_img_list[0], red_jump_right_img_list[0], red_jump_right_img_list[3]]
 green_jump_mid_img_list = [green_jump_right_img_list[0], green_jump_right_img_list[0], green_jump_right_img_list[3]]
@@ -217,23 +210,16 @@ music_on = True
 sound_on = True
 music_menu = False
 music_list = ["res/sound/level_music.mp3", "res/sound/menu_music.mp3"]
-# colors
-WHITE = (255, 255, 255)
-DARK_BLUE = (0, 38, 56)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 153, 220)
-GRAY = (109, 107, 118)
 
 # amount of level in level menu
 level_count = 6
+
+clock = pygame.time.Clock()
 
 # init display
 gameDisplay = pygame.display.set_mode((DISPLAYWIDTH, DISPLAYHEIGHT), DISPLAYFLAG, DISPLAYCOLBIT)
 gameDisplay.fill(WHITE)
 pygame.display.set_caption("MarioPy")
-
-clock = pygame.time.Clock()
 
 
 class Button:
@@ -322,22 +308,27 @@ class Property:
             date:
                 - 27.05.2020
             desc:
-                - timer is drawn in the correct format on the display
+                - properties from game are drawn
+                - health, coins, time
             param:
                 - nothing
             return:
                 - nothing
         """
+
+        # for timer
         end = time.time()
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
+        gameDisplay.blit(timer, (10, 0))
+
+        # draw health
         for i in range(int(lifes)):
             gameDisplay.blit(life_full, (5 + 35 * i + 5, 45))
 
+        # draw coin
         coin = self.font.render("{0} x ".format(int(coins)), True, WHITE)
-        gameDisplay.blit(timer, (10, 0))
-
         gameDisplay.blit(coin, (10, 100))
         if coins < 10:
             gameDisplay.blit(coin_pic, (60, 100))
@@ -382,6 +373,7 @@ class Jump:
             todo:
                 - Loop count not +1, to do it more more efficient
         """
+
         self.jump_height_count -= self.size
         # max. possible jump height - Number of pixels player is jumping
         if self.jump_height_count >= 0:
@@ -429,8 +421,8 @@ class Player(Species):
         self.level_array = get_level_array(level_num)
         self.reached_end = False
         self.health_counter = 70
-        self.coin_counter = 0
         # counter for losing lives
+        self.coin_counter = 0
 
     def move(self):
         """
@@ -503,7 +495,6 @@ class Player(Species):
                     self.player_rect.x += 1
                     # change players horizontal position back
                     break
-
 
     def collide(self, x_pos_player, y_pos_player):
         """
@@ -628,8 +619,6 @@ class Player(Species):
                 - nothing
             return:
                 - running: running state of the function game_loop()
-            todo:
-                - if highscore in top 10, enter name
         """
         if self.health <= 0:
             # player has no lives left
@@ -673,9 +662,6 @@ class Player(Species):
                 - nothing
             return:
                 - nothing
-            todo:
-                - jump mit einbauen
-                - comments
         """
         max_x = DISPLAYWIDTH / 2 - BLOCKWIDTH
         # relative position of player, so that player appears in the middle of the display
@@ -687,9 +673,11 @@ class Player(Species):
             gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[int(self.state)],
                              (max_x, self.player_rect.y))
             if self.state < (len(getattr(self.skin, self.move_list[self.current_move])) - 1):
-                self.state += 1  # damit die nächste Animation geladen wird
+                self.state += 1
+                # load the next animation
             else:
-                self.state = 0  # wenn letztes element von Array erreicht -> Bewegung von Vorne anfangen
+                self.state = 0
+                # when last element of array reached -> start movement from the beginning
         else:
             if self.jump.jump_count >= 0:
                 gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move + 3])[1],
@@ -728,6 +716,7 @@ class Player(Species):
 
 
 class Background:
+    # todo: Klasse löschen ??
     def __init__(self, x, y, speed, image, position):
         self.x = x
         self.y = y
@@ -1210,20 +1199,30 @@ def check_create(enemy_status, player_pos):
             - enemy_status
         todo:
             - create more opponents depending on player_pos
+            - not ended because enemy class does not work well
     """
     # 0 = not created, 1 = create, 2 = created, 3 = dead
-    if player_pos >= 200 and enemy_status[0] == 0:
+    if player_pos >= 3100 and enemy_status[0] == 0:
         # 3100
-        print("enemy 1 erstellt")
         # if enemy is not created and player vertical pos above 500
         enemy_status[0] = 1
         # manipulate arrray, so that gameloop can create enemy
-    elif player_pos >= 1000 and enemy_status[1] == 0:
+    elif player_pos >= 4000 and enemy_status[1] == 0:
         enemy_status[1] = 1
 
     return enemy_status
 
 
+#
+# Unfortunately we could not finish this class. An opponent should be created in it. It is a child class of Species .
+#
+# The Move method is used to make the opponent move. This move should only be done, if the distance to the absolute horizontal player position is so small, that enemies are displayed.
+#
+# In the move method the absolute player position is used to check if a collision has occurred.
+#
+# Depending on the type of collision the player or the opponent loses a life.
+#
+"""
 class Enemy(Species):
     def __init__(self, enemy_rect, current_move, move_list, skin, state, speed, health, range):
         super().__init__(enemy_rect, current_move, move_list, skin, state, speed, health)
@@ -1267,17 +1266,15 @@ class Enemy(Species):
 
             # movement begins new
 
-    """
     def collide_detection(self, pos_player):
         if self.player_rect.x - PLAYERWIDTH <= pos_player.x <= self.player_rect.x + PLAYERWIDTH:
             if self.player_rect.y - PLAYERHEIGHT + 5 <= player.player_rect.y <= self.enemy_rect.y + PLAYERHEIGHT + 5:
                 if pos_player.y + PLAYERHEIGHT - 15 <= self.player_rect.y:
                     self.alive = False
-                    # self.die_animation(player)
+                    self.die_animation(player)
                 else:
                     print("player lost life")
-    """
-    """
+
     def die_animation(self, player):
         for i in range(6):
             for j in range(len(background_list)):
@@ -1291,7 +1288,7 @@ class Enemy(Species):
                     (self.player_rect.x, self.player_rect.y + 10))
             pygame.display.update()
             pygame.time.wait(60)
-    """
+"""
 
 
 def game_loop(level_num):
@@ -1305,10 +1302,8 @@ def game_loop(level_num):
              - level_num: selection is made in the level menu
          return:
              - game_state: to jump back to menu
-     	todo:
-     	    - Gegener sichtbart erstellen, abhägig von absoluter Position von Player
-     	    - Highscore abspeichern, diesen im Menü anzeigen können (-> siehe helpful code, zum abspeichern in extra Datei)
     """
+
     running = True
     # create objects
     std_jump = Jump(0, BLOCKHEIGHT * 2 + 10)
@@ -1329,8 +1324,12 @@ def game_loop(level_num):
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
 
-        # enemy_status = check_create(enemy_status, player.player_rect.x)
+        #
+        # because the enemy class is not finished this code is commentated
+        #
 
+        """
+        enemy_status = check_create(enemy_status, player.player_rect.x)
         for i in enemy_status:
             for j in range(0, 4):
                 if i == 1:
@@ -1349,12 +1348,15 @@ def game_loop(level_num):
                         # print("enemy draw")
                     elif j == 1:
                         enemy_2.draw_self()
+        """
 
         player.draw_self()
         running = player.dead(window)
-        window.draw(player.health, player.coin_counter)  # for Time, and health
-        pygame.display.update()  # Display updaten
-        clock.tick(30)  # max 30 Herz
+        window.draw(player.health, player.coin_counter)
+        # display time, health and collected coins
+        pygame.display.update()
+        clock.tick(30)
+        # max 30 Hz
     play_music(0)
     return 1
 
