@@ -41,10 +41,14 @@ PLAYERWIDTH = 40
 # define_blocks
 DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
 POWERUP_BLOCK = [56, 57, 63, 64]
-RARE_BLOCK = [45, 46, 47, 48]
+CACTUS_BLOCK = 45
+RARE_BLOCK = [46, 47, 48]
 END_BLOCK = 11  # Ende von Spiel
+YELLOW_COIN = 54
+RED_COIN = 55
+BLUE_COIN = 61
+GREEN_COIN = 62
 WATER_BLOCK = 40
-COIN_BLOCK = [54, 55, 61, 62]
 NOT_PASSABLE_BLOCK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 31, 32, 33, 34,
                       41, 42, 43, 44]
 
@@ -91,6 +95,8 @@ for i in range(len(button_names)):
 # load tileset
 tileset = pygame.transform.scale(pygame.image.load("res/level/nature-paltformer-tileset-16x16.png"),
                                  (350, 550))
+# load game pictures
+coin_pic = pygame.transform.scale(pygame.image.load("res/level/coin.png"), (23, 23))
 
 # load charrackter sprites
 run_right_img_list = []
@@ -306,12 +312,12 @@ move_list_player = ["stay", "run_right", "run_left", "jump_mid", "jump_right", "
 move_list_alien = ["run_right", "run_left"]
 
 
-class Timer:
+class Property:
     def __init__(self):
         self.start = time.time()  # starter tick
         self.font = pygame.font.SysFont(None, 40)  # create Font
 
-    def draw(self, lifes):
+    def draw(self, lifes, coins):
         """
             date:
                 - 27.05.2020
@@ -327,8 +333,18 @@ class Timer:
         minutes, seconds = divmod(rem, 60)
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
         for i in range(int(lifes)):
-            gameDisplay.blit(life_full,(35*i+5,45))
-        gameDisplay.blit(timer, (0, 0))
+            gameDisplay.blit(life_full, (5 + 35 * i + 5, 45))
+
+        coin = self.font.render("{0} x ".format(int(coins)), True, WHITE)
+        gameDisplay.blit(timer, (10, 0))
+
+        gameDisplay.blit(coin, (10, 100))
+        if coins < 10:
+            gameDisplay.blit(coin_pic, (60, 100))
+        elif coins < 100:
+            gameDisplay.blit(coin_pic, (75, 100))
+        elif coins >= 100:
+            gameDisplay.blit(coin_pic, (90, 100))
 
 
 class Jump:
@@ -413,6 +429,9 @@ class Player(Species):
         self.jump = jump
         self.level_array = get_level_array(level_num)
         self.reached_end = False
+        self.health_counter = 70
+        self.coin_counter = 0
+        # counter for losing lives
 
     def move(self):
         """
@@ -525,13 +544,35 @@ class Player(Species):
             self.health -= 3
             # Player die
             collision = True
-        elif block_value in COIN_BLOCK:
-            print("found coin")
+        elif block_value == YELLOW_COIN:
+            self.coin_counter += 1
+            self.level_array[player_list][player_element] = 74
+            collision = False
+        elif block_value == GREEN_COIN:
+            self.coin_counter += 2
+            self.level_array[player_list][player_element] = 74
+            collision = False
+        elif block_value == RED_COIN:
+            self.coin_counter += 5
+            self.level_array[player_list][player_element] = 74
+            collision = False
+        elif block_value == BLUE_COIN:
+            self.coin_counter += 10
+            self.level_array[player_list][player_element] = 74
             collision = False
         elif block_value == END_BLOCK:
             self.reached_end = True
-            # see method dead() for more
+            # see method dead() for further action
             collision = True
+        elif block_value == CACTUS_BLOCK:
+            if self.health_counter >= 1:
+                self.health_counter -= 1
+            else:
+                # self.counter == 0:
+                self.health -= 1
+                self.health_counter = 70
+                # set self.counter new
+            collision = False
         return collision
 
     def handle_keys(self, running):
@@ -580,7 +621,7 @@ class Player(Species):
                     self.state = 0
             return running
 
-    def dead(self,time_level):
+    def dead(self, time_level):
         """
             date:
                 - 27.05.2020
@@ -606,7 +647,7 @@ class Player(Species):
         else:
             running = True
         if self.reached_end == True:
-            gameDisplay.blit(transparent,(150,50))
+            gameDisplay.blit(transparent, (150, 50))
             gameDisplay.blit(transparent, (150, 50))
             gameDisplay.blit(transparent, (150, 50))
             gameDisplay.blit(pygame.transform.scale(logo_img, (200, 140)), (400, 390))
@@ -664,34 +705,27 @@ class Player(Species):
              date:
                  - 27.05.2020
              desc:
-                 - Funktion wird ausgeführt wenn Spieler ein Getränk einsammelt
-                 - es werden je nach Art des Getränks die Spielereigenschaften geändert
+                 - is executed when player collects a items,
+                 - influences the player characteristics:
+                    - brown and yellow item for more health
+                    - green item for higher jump
+                    - red item for more speed
              param:
                  - num: ID of collected drink
              return:
                  - nothing
-             todo:
-                 - Spieler Layout verändern
-                 - Eigneschaften von Spieler beeinflussen
-                 - Timer ablaufen lassen ??
-                 - todo high jump implementieren
         """
 
         if num == 56:
-            print("Grün_skin green +jump")
             self.skin = green_skin
             high_jump = Jump(0, BLOCKHEIGHT * 3 + 10)
             self.jump = high_jump
         elif num == 57:
-            print("rot_skinred + speed_")
             self.speed += 1
-            if self.skin == green_skin:
-                self.skin = red_skin
+            self.skin = red_skin
         elif num == 63:
-            print("braun_leben +1")
             self.health += 1
         elif num == 64:
-            print("gelb leben +2")
             self.health += 2
 
 
@@ -825,6 +859,7 @@ def draw_level_place_holder():
             if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, GRAY, (x + 100, y + 90))
     gameDisplay.blit(level_1_img, (70, 90))
+
 
 def draw_level_nums():
     for i in range(int(level_count / 2)):
@@ -978,7 +1013,7 @@ def check_events(game_state):
     return game_state
 
 
-dummy_jump = Jump(0,10)
+dummy_jump = Jump(0, 10)
 dummy_player = DummyPlayer(pygame.Rect(140, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
 dummy_player2 = DummyPlayer(pygame.Rect(360, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
 jump_count = 5
@@ -999,7 +1034,7 @@ def paint_help():
         alien_state = 0
     gameDisplay.blit(pygame.transform.scale(
         getattr(dummy_player.skin, dummy_player.move_list[dummy_player.current_move])[dummy_player.state], (70, 105)),
-                     (dummy_player.player_rect.x, dummy_player.player_rect.y))
+        (dummy_player.player_rect.x, dummy_player.player_rect.y))
     if dummy_player.state < len(getattr(dummy_player.skin, dummy_player.move_list[dummy_player.current_move])) - 1:
         dummy_player.state += 1
     else:
@@ -1179,7 +1214,6 @@ def check_create(enemy_status, player_pos):
             - noch mehr gegner erstellen abh. von player_pos
     """
     # 0 = not created, 1 = create, 2 = created, 3 = dead
-    """
     if player_pos >= 200 and enemy_status[0] == 0:
         # 3100
         print("enemy 1 erstellt")
@@ -1188,7 +1222,7 @@ def check_create(enemy_status, player_pos):
         # manipulate arrray, so that gameloop can create enemy
     elif player_pos >= 1000 and enemy_status[1] == 0:
         enemy_status[1] = 1
-    """
+
     return enemy_status
 
 
@@ -1204,13 +1238,10 @@ class Enemy(Species):
 
     def draw_self(self):
         if self.alive:
+            self.move()
             gameDisplay.blit(getattr(self.skin, self.move_list[self.current_move])[self.state],
                              (self.player_rect.x, self.player_rect.y))
-            pygame.display.update()  # Display updaten
-            print("pause")
-            time.sleep(2)
-            print("pause ende")
-            self.move()
+
             if self.state < (len(self.skin.run_right) - 1):
                 self.state += 1
             else:
@@ -1294,7 +1325,7 @@ def game_loop(level_num):
 
     enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     # 0 = not created, 1 = create, 2 = created, 3 = dead
-    time_level = Timer()
+    window = Property()  # look für time_level
     play_music(4)
     while running:
         # continuous loop until player dies or wins game
@@ -1303,30 +1334,30 @@ def game_loop(level_num):
         player.move()
         level.draw_level(player.player_rect.x, player.level_array)
 
-        enemy_status = check_create(enemy_status, player.player_rect.x)
+        # enemy_status = check_create(enemy_status, player.player_rect.x)
 
         for i in enemy_status:
             for j in range(0, 4):
                 if i == 1:
                     if j == 0:
                         # def __init__(self, enemy_rect, current_move, move_list, skin, state, speed, health, range):
-                        enemy_1 = Enemy(pygame.Rect(3100, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
-                                        green_alien, 0, 10, 1, 750)
+                        enemy_1 = Enemy(pygame.Rect(800, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
+                                        green_alien, 0, 3, 1, 750)
                         enemy_status[j] = 2
                     elif j == 1:
-                        enemy_2 = Enemy(pygame.Rect(6000, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
+                        enemy_2 = Enemy(pygame.Rect(800, DISPLAYHEIGHT - 2 * BLOCKHEIGHT, 50, 75), 0, move_list_alien,
                                         green_alien, 0, 10, 1, 750)
                         enemy_status[j] = 2
                 if i == 2:
                     if j == 0:
                         enemy_1.draw_self()
-                        print("enemy draw")
+                        # print("enemy draw")
                     elif j == 1:
                         enemy_2.draw_self()
 
         player.draw_self()
-        running = player.dead(time_level)
-        time_level.draw(player.health)  # for Time, and health
+        running = player.dead(window)
+        window.draw(player.health, player.coin_counter)  # for Time, and health
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)
