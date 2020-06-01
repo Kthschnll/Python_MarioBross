@@ -204,6 +204,7 @@ nature_sample = pygame.transform.scale(pygame.image.load(resources_path_credits 
 # load level images
 life_full = pygame.transform.scale(pygame.image.load(resources_path_level + "life_full.png"), (30, 30))
 life_empty = pygame.transform.scale(pygame.image.load(resources_path_level + "life_empty.png"), (30, 30))
+transparent = pygame.transform.scale(pygame.image.load(resources_path_level + "trans.png"), (700, 500))
 
 # global music varables
 music_on = True
@@ -579,7 +580,7 @@ class Player(Species):
                     self.state = 0
             return running
 
-    def dead(self):
+    def dead(self,time_level):
         """
             date:
                 - 27.05.2020
@@ -605,7 +606,19 @@ class Player(Species):
         else:
             running = True
         if self.reached_end == True:
-            # todo: katha
+            gameDisplay.blit(transparent,(150,50))
+            gameDisplay.blit(transparent, (150, 50))
+            gameDisplay.blit(transparent, (150, 50))
+            gameDisplay.blit(pygame.transform.scale(logo_img, (200, 140)), (400, 390))
+            static_display("LEVEL COMPLETE!", 40, DARK_BLUE, (500, 150))
+            static_display("Your Time Score:", 30, DARK_BLUE, (500, 250))
+            end = time.time()
+            hours, rem = divmod(end - time_level.start, 3600)
+            minutes, seconds = divmod(rem, 60)
+            score = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
+            static_display(score, 60, DARK_BLUE, (500, 320))
+            play_music(6)
+            time.sleep(5)
 
             running = False
 
@@ -887,7 +900,10 @@ def play_music(game_state):
             music_menu = False
         elif game_state == 5:
             pygame.mixer.music.load("res/sound/lost_music.mp3")
+        elif game_state == 6:
+            pygame.mixer.music.load("res/sound/win.mp3")
         pygame.mixer.music.play(-1)
+
     else:
         pygame.mixer.music.stop()
         music_menu = False
@@ -1272,13 +1288,13 @@ def game_loop(level_num):
     std_jump = Jump(0, BLOCKHEIGHT * 2 + 10)
     player = Player(pygame.Rect(BLOCKWIDTH, DISPLAYHEIGHT - 4 * BLOCKHEIGHT, PLAYERWIDTH, PLAYERHEIGHT), 0,
                     move_list_player, std_jump,
-                    std_skin, 0, 20, 2, level_num)
+                    std_skin, 0, 15, 2, level_num)
 
     level = Level(level_num)
 
     enemy_status = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     # 0 = not created, 1 = create, 2 = created, 3 = dead
-    time = Timer()
+    time_level = Timer()
     play_music(4)
     while running:
         # continuous loop until player dies or wins game
@@ -1309,12 +1325,12 @@ def game_loop(level_num):
                         enemy_2.draw_self()
 
         player.draw_self()
-        running = player.dead()
-        time.draw(player.health)  # for Time, and health
+        running = player.dead(time_level)
+        time_level.draw(player.health)  # for Time, and health
         pygame.display.update()  # Display updaten
         clock.tick(30)  # max 30 Herz
     play_music(0)
-    return 0
+    return 1
 
 
 main()
