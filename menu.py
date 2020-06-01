@@ -370,8 +370,12 @@ class Jump:
                 - player: to get vertical position of the player and to execute the method collision()
             return:
                 - nothing
+            test:
+                - jump up without moving left or right and see if player y-position is moved to the old one plus jump_height
+                - check if jump_height is reached if the player stops moving
             todo:
                 - Loop count not +1, to do it more more efficient
+
         """
 
         self.jump_height_count -= self.size
@@ -436,6 +440,11 @@ class Player(Species):
                 - nothing
             return:
                 - nothing
+            test:
+                - move player left and right equally long and check if player is back at the starting point
+                - the gravity can be tested if the function jump has been tested before and is working, here you can also see if players come out at the starting point
+                - put not passable blocks all around the player and test if players position is not changed
+                - put passable blocks around the player and test if players position is changed
             todo:
                 - Loop count not +1, to do it more more efficient
         """
@@ -498,16 +507,18 @@ class Player(Species):
 
     def collide(self, x_pos_player, y_pos_player):
         """
-             date:
-                 - 27.05.2020
-             desc:
-                 - detect collisions from player with blocks from level
-             param:
-                 - x_pos_player: relevant horizontal position of the player
-                 - y_pos_player: relevant vertical position of the player
-             return:
-                 - true:  if there is a collisions with blocks
-                 - false: no collision
+            date:
+                - 27.05.2020
+            desc:
+                - detect collisions from player with blocks from level
+            param:
+                - x_pos_player: relevant horizontal position of the player
+                - y_pos_player: relevant vertical position of the player
+            return:
+                - true:  if there is a collisions with blocks
+                - false: no collision
+            test:
+                - tests with different numbers whose division by the blockwidth or blockheight gives almost zero rest
         """
         player_list = (x_pos_player // BLOCKWIDTH)
         # which list of the 2-dim array is relevant
@@ -759,6 +770,9 @@ class Level:
                 - modified_level: can be different from the one you get in the "Constructor" because collected items disappear
             return:
                 - nothing
+            test:
+                - start with the player position zero
+                - increase player position one by one, when the position was increased by exactly one blockwidth check if the relevant array list is increased by one
         """
         self.level_array = modified_level
         # get the new array, necessary if item is collected
@@ -1200,6 +1214,8 @@ def check_create(enemy_status, player_pos):
         todo:
             - create more opponents depending on player_pos
             - not ended because enemy class does not work well
+        test:
+            - tests with values that are close to the limits for which the array is changed
     """
     # 0 = not created, 1 = create, 2 = created, 3 = dead
     if player_pos >= 3100 and enemy_status[0] == 0:
@@ -1300,8 +1316,10 @@ def game_loop(level_num):
      	    - Create objects: player, jump, level, enemy
      	param:
              - level_num: selection is made in the level menu
-         return:
+        return:
              - game_state: to jump back to menu
+        test:
+            - test is not useful, testing only in the function itself
     """
 
     running = True
