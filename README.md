@@ -6,12 +6,11 @@
 
 notes:
 - We have implemented an opponent that does not move. It looks like a cactus.  
-- Unfortunately we could not finish the enemy class. In the code you can see at the appropriate place which functions it should have. 
+- Unfortunately we could not finish the enemy class. At the appropriate place in the code the functionalities of the class are described.
 
 todo: 
-- Finish writing the methods of the opponent class, so you would have opponents that move. A
-  At the appropriate place in the code the functionalities of the class are described.
-  
+- Finish writing the methods of the opponent class, so you would have opponents that move.
+
 
 Closing words: 
 
