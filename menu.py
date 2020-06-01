@@ -806,7 +806,7 @@ def draw_level_place_holder():
             gameDisplay.blit(level_place_holder, (x - 10, y - 10))
             if (j * 3 + i) > 0:
                 static_display("comming soon...", 20, GRAY, (x + 100, y + 90))
-
+    gameDisplay.blit(level_1_img, (70, 90))
 
 def draw_level_nums():
     for i in range(int(level_count / 2)):
@@ -957,7 +957,7 @@ def check_events(game_state):
     return game_state
 
 
-dummy_jump = Jump(0)
+dummy_jump = Jump(0,10)
 dummy_player = DummyPlayer(pygame.Rect(140, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
 dummy_player2 = DummyPlayer(pygame.Rect(360, 200, 70, 105), 0, move_list_player, dummy_jump, std_skin, 0)
 jump_count = 5
