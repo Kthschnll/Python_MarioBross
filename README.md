@@ -1,7 +1,7 @@
-### Python_MarioBros
+# Python_MarioBros
 
 
-# Have fun!
+### Have fun!
 
 
 notes:
