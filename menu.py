@@ -518,7 +518,6 @@ class Player(Species):
                  - false: no collision
              todo:
                  - Bei end block ins Menü zurück oder Animation abspielen und Name eintragen wenn Highscore unter den besten 10
-                 - eventuell Reihenfolge ändern(effizienter, statt else alle nicht passierbaren Blöcke in Array und an Anfang
         """
         player_list = (x_pos_player // BLOCKWIDTH)
         # which list of the 2-dim array is relevant
@@ -538,7 +537,6 @@ class Player(Species):
             # drink is deleted
             collision = False
         elif block_value in RARE_BLOCK:
-            print("found rare item")
             collision = False
         elif block_value == WATER_BLOCK:
             self.health -= 3
