@@ -29,7 +29,7 @@ DARK_BLUE = (0, 38, 56)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 153, 220)
-GRAY = (109, 107, 118)
+GRAY = (60, 60, 60)
 
 # define_blocks
 DECORATION_BLOCK = [22, 23, 29, 30, 36, 37, 51, 52, 53, 58, 59, 60, 65, 66, 67, 72, 73, 74]
@@ -1391,7 +1391,8 @@ def menu_score_loop(game_state):
     """
     gameDisplay.blit(menu_navbar, (0, 0))
     draw_menu_background()
-
+    text = "Buy pro version to unlock this feature..."
+    static_display(text, 20, GRAY, (500, 300))
     while game_state == 2:
         check_buttons()
         game_state = check_events(game_state)
