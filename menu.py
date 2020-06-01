@@ -53,6 +53,7 @@ resources_path = "res/menu/"
 resources_path_level_background = "res/level_background/"
 resources_path_enemy = "res/enemy/1/"
 resources_path_credits = "res/Credits/"
+resources_path_level = "res/level/"
 menu_background = pygame.transform.scale(pygame.image.load(resources_path + "Background.png"), (1000, 600))
 menu_navbar = pygame.transform.scale(pygame.image.load(resources_path + "Navbar_back.png"), (1000, 40))
 level_background = pygame.transform.scale(pygame.image.load(resources_path + "Level_back.png"), (240, 175))
@@ -200,6 +201,10 @@ jungle_sample = pygame.transform.scale(pygame.image.load(resources_path_credits 
 nature_logo = pygame.transform.scale(pygame.image.load(resources_path_credits + "Tileset_RP.PNG"), (300, 170))
 nature_sample = pygame.transform.scale(pygame.image.load(resources_path_credits + "Tileset_RP2.PNG"), (130, 130))
 
+# load level images
+life_full = pygame.transform.scale(pygame.image.load(resources_path_level + "life_full.png"), (30, 30))
+life_empty = pygame.transform.scale(pygame.image.load(resources_path_level + "life_empty.png"), (30, 30))
+
 # global music varables
 music_on = True
 sound_on = True
@@ -320,9 +325,9 @@ class Timer:
         hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
         timer = self.font.render("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds), True, WHITE)
-        health = self.font.render("Lifes: {0} ".format(int(lifes)), True, WHITE)
+        for i in range(int(lifes)):
+            gameDisplay.blit(life_full,(35*i+5,45))
         gameDisplay.blit(timer, (0, 0))
-        gameDisplay.blit(health, (0, 50))
 
 
 class Jump:
